@@ -4,34 +4,44 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - TodoView</title>
-    <script type="import map"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
-<header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
-        <div class="container">
-            <a class="navbar-brand fw-bold" asp-page="/Index">TodoView</a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+@* Only show header if "HideNavbar" is NOT set in the child page *@
+@if (ViewData["HideNavbar"] == null)
+{
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-4">
+            <div class="container">
+                <a class="navbar-brand fw-bold" asp-page="/Index">
+                    <i class="bi bi-check2-square text-primary"></i> TodoView
+                </a>
 
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="Todos/Index">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/User">User</a>
-                    </li>
-                </ul>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-page="/Todos/Index">Todos</a>
+                            </li>
+                        }
+                    </ul>
+                    
+                    @* This partial handles the Login/Logout/Register buttons automatically *@
+                    <partial name="_LoginPartial" />
+                </div>
             </div>
-        </div>
-    </nav>
-</header>
+        </nav>
+    </header>
+}
+
 <div class="container">
     <main role="main" class="pb-3">
         @RenderBody()

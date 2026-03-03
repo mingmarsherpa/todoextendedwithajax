@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using TodoView.Data;
 using TodoView.Models;
 
 namespace TodoView.Pages.Todos
@@ -13,10 +9,12 @@ namespace TodoView.Pages.Todos
     public class DeleteModel : PageModel
     {
         private readonly TodoView.Data.TodoDbContext _context;
+        private readonly UserManager<User> _userManager; // 1. Inject UserManager
 
-        public DeleteModel(TodoView.Data.TodoDbContext context)
+        public DeleteModel(TodoView.Data.TodoDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [BindProperty]
@@ -24,35 +22,36 @@ namespace TodoView.Pages.Todos
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null)
+            if (id == null) return NotFound();
+
+            var userId = _userManager.GetUserId(User);
+
+            // 2. Only show the confirmation page if the user owns this item
+            var todo = await _context.TodoItems
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (todo == null)
             {
                 return NotFound();
             }
 
-            var todo = await _context.TodoItems.FirstOrDefaultAsync(m => m.Id == id);
-
-            if (todo is not null)
-            {
-                Todo = todo;
-
-                return Page();
-            }
-
-            return NotFound();
+            Todo = todo;
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var todo = await _context.TodoItems.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+
+            // 3. Security: Find the item specifically belonging to this user
+            var todo = await _context.TodoItems
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
             if (todo != null)
             {
-                Todo = todo;
-                _context.TodoItems.Remove(Todo);
+                _context.TodoItems.Remove(todo);
                 await _context.SaveChangesAsync();
             }
 

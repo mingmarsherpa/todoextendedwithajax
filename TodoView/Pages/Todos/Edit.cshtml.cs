@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using TodoView.Data;
 using TodoView.Models;
 
 namespace TodoView.Pages.Todos
@@ -14,10 +9,12 @@ namespace TodoView.Pages.Todos
     public class EditModel : PageModel
     {
         private readonly TodoView.Data.TodoDbContext _context;
+        private readonly UserManager<User> _userManager; // 1. Added UserManager
 
-        public EditModel(TodoView.Data.TodoDbContext context)
+        public EditModel(TodoView.Data.TodoDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [BindProperty]
@@ -25,28 +22,38 @@ namespace TodoView.Pages.Todos
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var todo =  await _context.TodoItems.FirstOrDefaultAsync(m => m.Id == id);
-            if (todo == null)
-            {
-                return NotFound();
-            }
+            var userId = _userManager.GetUserId(User);
+
+            // 2. Security: Only find the Todo if it belongs to the current user
+            var todo = await _context.TodoItems
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (todo == null) return NotFound();
+
             Todo = todo;
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
+            // 3. Prevent validation errors for fields we set manually
+            ModelState.Remove("Todo.UserId");
+            ModelState.Remove("Todo.User");
+
+            if (!ModelState.IsValid) return Page();
+
+            var userId = _userManager.GetUserId(User);
+
+            // 4. Double-check ownership before saving
+            var existsAndOwned = await _context.TodoItems
+                .AnyAsync(t => t.Id == Todo.Id && t.UserId == userId);
+
+            if (!existsAndOwned) return NotFound();
+
+            // 5. Ensure the UserId isn't changed by a malicious form post
+            Todo.UserId = userId;
 
             _context.Attach(Todo).State = EntityState.Modified;
 
@@ -56,14 +63,8 @@ namespace TodoView.Pages.Todos
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TodoExists(Todo.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!TodoExists(Todo.Id)) return NotFound();
+                else throw;
             }
 
             return RedirectToPage("./Index");
@@ -71,7 +72,8 @@ namespace TodoView.Pages.Todos
 
         private bool TodoExists(int id)
         {
-            return _context.TodoItems.Any(e => e.Id == id);
+            var userId = _userManager.GetUserId(User);
+            return _context.TodoItems.Any(e => e.Id == id && e.UserId == userId);
         }
     }
 }

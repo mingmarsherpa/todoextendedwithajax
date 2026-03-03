@@ -7,12 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<TodoDbContext>();
+builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<TodoDbContext>();
 
 
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AuthorizeFolder("/Todos");
+});
 
 var app = builder.Build();
 
@@ -30,8 +33,8 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseAuthentication();   // FIRST
 app.UseAuthorization();
-app.UseAuthentication();
 
 app.MapStaticAssets();
 app.MapRazorPages()

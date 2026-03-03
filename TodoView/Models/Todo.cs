@@ -13,7 +13,7 @@ public class Todo
     [StringLength(100, ErrorMessage = "the length must be less than 100 characters")]
     public string Description { get; set; }=string.Empty;
     public bool IsDone { get; set; }=false;
-    
+    [Required]
     public string UserId { get; set; } = string.Empty;
-    public User User { get; set; } = default!;
+    public User? User { get; set; } = default!;
 }
