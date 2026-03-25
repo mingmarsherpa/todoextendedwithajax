@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace TodoView.Pages.Todos
     public class DetailsModel : PageModel
     {
         private readonly TodoView.Data.TodoDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public DetailsModel(TodoView.Data.TodoDbContext context)
+        public DetailsModel(TodoView.Data.TodoDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public Todo Todo { get; set; } = default!;
@@ -28,7 +31,8 @@ namespace TodoView.Pages.Todos
                 return NotFound();
             }
 
-            var todo = await _context.TodoItems.FirstOrDefaultAsync(m => m.Id == id);
+            var userId = _userManager.GetUserId(User);
+            var todo = await _context.TodoItems.FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
 
             if (todo is not null)
             {

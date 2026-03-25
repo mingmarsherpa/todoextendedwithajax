@@ -5,14 +5,15 @@
     ViewData["Title"] = "Create New Task";
 }
 
-<div class="container py-5">
+<div class="page-shell">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white py-3">
-                    <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Todo</h4>
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <h4 class="mb-2"><i class="bi bi-plus-circle me-2"></i>Create New Todo</h4>
+                    <p class="mb-0">Capture the task title, add supporting details, and decide whether it starts completed.</p>
                 </div>
-                <div class="card-body p-4">
+                <div class="auth-card-body">
                     <form method="post">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small"></div>
 
@@ -41,7 +42,7 @@
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-check-lg"></i> Create Task
                             </button>
-                            <a asp-page="Index" class="btn btn-link text-muted">Cancel and go back</a>
+                            <a asp-page="Index" class="btn btn-outline-secondary">Cancel and go back</a>
                         </div>
                     </form>
                 </div>

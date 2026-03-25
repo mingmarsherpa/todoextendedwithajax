@@ -45,6 +45,7 @@ namespace TodoView.Pages.Todos
             if (!ModelState.IsValid) return Page();
 
             var userId = _userManager.GetUserId(User);
+            if (userId is null) return Challenge();
 
             // 4. Double-check ownership before saving
             var existsAndOwned = await _context.TodoItems

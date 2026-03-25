@@ -5,16 +5,16 @@
     ViewData["HideNavbar"] = true;
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
+<div class="container auth-shell">
+    <div class="row justify-content-center w-100">
         <div class="col-12 col-md-8 col-lg-6">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h2 class="fw-bold mb-0">Join Us</h2>
-                    <p class="mb-0 opacity-75">Create your account in just a few steps</p>
+            <div class="auth-card">
+                <div class="auth-card-header text-center">
+                    <h2 class="fw-bold mb-2">Create Your Account</h2>
+                    <p class="mb-0">Set up your profile, pick a password, and start organizing work without the stock bootstrap look.</p>
                 </div>
                 
-                <div class="card-body p-4 p-md-5">
+                <div class="auth-card-body">
                     <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -70,15 +70,15 @@
                     </form>
                 </div>
                 
-                <div class="card-footer text-center py-3 bg-light border-0">
+                <div class="auth-card-footer text-center">
                     <p class="small mb-0 text-muted">
-                        Already have an account? <a asp-page="./Login" class="text-primary fw-bold text-decoration-none">Log in</a>
+                        Already have an account? <a asp-page="./Login" class="fw-bold text-decoration-none">Log in</a>
                     </p>
                 </div>
             </div>
             
             <div class="text-center mt-4">
-                <a asp-area="" asp-page="/Index" class="text-muted small text-decoration-none">
+                <a asp-area="" asp-page="/Index" class="auth-back-link small">
                     &larr; Back to Home
                 </a>
             </div>

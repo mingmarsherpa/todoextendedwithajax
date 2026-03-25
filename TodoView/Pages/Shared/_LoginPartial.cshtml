@@ -1,33 +1,43 @@
 @using Microsoft.AspNetCore.Identity
+@using TodoView.Authorization
 @using TodoView.Models
 
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 
-<ul class="navbar-nav">
+<div class="app-nav-actions">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a id="manage" class="nav-link text-white" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
-    </li>
-    <li class="nav-item">
-        <li class="nav-item">
-            <form id="logoutForm" class="form-inline" 
-                  asp-area="Identity" 
-                  asp-page="/Account/Logout" 
-                  asp-route-returnUrl="@Url.Page("/Account/Login", new { area = "Identity" })">
-                <button id="logout" type="submit" class="nav-link btn btn-link text-white border-0">Logout</button>
-            </form>
-        </li>
-    </li>
+    <a id="manage" class="nav-link app-nav-pill" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+        <i class="bi bi-person-circle"></i>
+        <span>@UserManager.GetUserName(User)</span>
+    </a>
+    @if (User.IsInRole(AppRoles.Admin))
+    {
+        <a class="nav-link app-nav-pill app-nav-pill-accent" asp-page="/Admin/Users/Index">
+            <i class="bi bi-shield-lock"></i>
+            <span>Admin</span>
+        </a>
+    }
+    <form id="logoutForm"
+          asp-area="Identity"
+          asp-page="/Account/Logout"
+          asp-route-returnUrl="@Url.Page("/Account/Login", new { area = "Identity" })">
+        <button id="logout" type="submit" class="btn app-nav-button">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+        </button>
+    </form>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
+    <a class="nav-link app-nav-pill" id="register" asp-area="Identity" asp-page="/Account/Register">
+        <i class="bi bi-person-plus"></i>
+        <span>Register</span>
+    </a>
+    <a class="btn app-nav-button" id="login" asp-area="Identity" asp-page="/Account/Login">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span>Login</span>
+    </a>
 }
-</ul>
+</div>

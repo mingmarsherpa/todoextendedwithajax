@@ -5,16 +5,22 @@
     ViewData["Title"] = "Todos";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-5 fw-bold">My Tasks</h1>
-        <a asp-page="Create" class="btn btn-success shadow-sm">
-            <i class="bi bi-plus-lg"></i> Create New Task
-        </a>
-    </div>
+<div class="page-shell">
+    <div class="page-stack">
+        <section class="page-hero">
+            <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+                <div>
+                    <span class="eyebrow">Personal Workspace</span>
+                    <h1 class="display-5 fw-bold mb-2">My Tasks</h1>
+                    <p class="mb-0">Track priorities, review progress, and keep every task in one warm-toned dashboard.</p>
+                </div>
+                <a asp-page="Create" class="btn btn-success">
+                    <i class="bi bi-plus-lg"></i> Create New Task
+                </a>
+            </div>
+        </section>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+        <section class="panel-card">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
@@ -36,11 +42,15 @@
                                     <td class="text-center">
                                         @if (item.IsDone)
                                         {
-                                            <span class="badge rounded-pill bg-success-subtle text-success border border-success">Completed</span>
+                                            <span class="status-pill status-pill-done">
+                                                <i class="bi bi-check2-circle"></i> Completed
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning">In Progress</span>
+                                            <span class="status-pill status-pill-progress">
+                                                <i class="bi bi-hourglass-split"></i> In Progress
+                                            </span>
                                         }
                                     </td>
                                     <td class="text-end pe-4">
@@ -56,14 +66,17 @@
                         else
                         {
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
-                                    <p class="mb-0">No tasks found. Time to relax!</p>
+                                <td colspan="4" class="p-0">
+                                    <div class="empty-state">
+                                        <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
+                                        <p class="mb-0">No tasks found. Add one when you're ready to get moving again.</p>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
     </div>
 </div>

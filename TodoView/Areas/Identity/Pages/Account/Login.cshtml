@@ -6,15 +6,17 @@
     ViewData["HideNavbar"] = true;
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
+<div class="container auth-shell">
+    <div class="row justify-content-center w-100">
         <div class="col-12 col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4 p-md-5">
-                    
+            <div class="auth-card">
+                <div class="auth-card-header text-center">
+                    <h2 class="fw-bold mb-2">Welcome Back</h2>
+                    <p class="mb-0">Sign in to continue managing tasks and users from the same calm workspace.</p>
+                </div>
+                <div class="auth-card-body">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold text-primary">Welcome Back</h2>
-                        <p class="text-muted">Please enter your details to sign in</p>
+                        <span class="eyebrow">Account Access</span>
                     </div>
 
                     <form id="account" method="post">
@@ -51,7 +53,7 @@
                         <div class="text-center mt-3">
                             <p class="small text-muted mb-0">
                                 Don't have an account? 
-                                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-primary fw-bold text-decoration-none">
+                                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-decoration-none">
                                     Create one now
                                 </a>
                             </p>
@@ -61,7 +63,7 @@
             </div>
 
             <div class="text-center mt-4">
-                <a asp-area="" asp-page="/Index" class="text-muted small text-decoration-none">
+                <a asp-area="" asp-page="/Index" class="auth-back-link small">
                     &larr; Back to Home
                 </a>
             </div>

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using TodoView.Authorization;
 using TodoView.Models;
 
 namespace TodoView.Areas.Identity.Pages.Account
@@ -22,12 +23,14 @@ namespace TodoView.Areas.Identity.Pages.Account
         private readonly UserManager<User> _userManager;
         private readonly IUserStore<User> _userStore;
         private readonly IUserEmailStore<User> _emailStore;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
         public RegisterModel(
             UserManager<User> userManager,
             IUserStore<User> userStore,
+            RoleManager<IdentityRole> roleManager,
             SignInManager<User> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
@@ -35,6 +38,7 @@ namespace TodoView.Areas.Identity.Pages.Account
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
@@ -131,6 +135,8 @@ namespace TodoView.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+                    await EnsureRoleExistsAsync(AppRoles.User);
+                    await _userManager.AddToRoleAsync(user, AppRoles.User);
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -158,6 +164,18 @@ namespace TodoView.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private async Task EnsureRoleExistsAsync(string roleName)
+        {
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
+                if (!result.Succeeded)
+                {
+                    throw new InvalidOperationException($"Unable to create required role '{roleName}'.");
+                }
+            }
         }
 
         private User CreateUser()

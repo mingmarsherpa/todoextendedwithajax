@@ -1,0 +1,113 @@
+@page
+@model TodoView.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "Manage Users";
+    var adminCount = Model.Users.Count(user => user.Roles.Contains("Admin"));
+    var userCount = Model.Users.Count;
+}
+
+<div class="admin-shell py-4">
+    <section class="admin-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-4 align-items-lg-end">
+            <div>
+                <span class="eyebrow">Admin Console</span>
+                <h1 class="display-6 mb-2">User Management</h1>
+                <p class="mb-0">Review every account, create new users, promote admins, and keep access under control from one protected workspace.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-page="./Create" class="btn btn-light">
+                    <i class="bi bi-person-plus me-1"></i> Create User
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-stat-grid">
+        <article class="admin-stat-card">
+            <div class="label">Total Users</div>
+            <div class="value">@userCount</div>
+        </article>
+        <article class="admin-stat-card">
+            <div class="label">Admins</div>
+            <div class="value">@adminCount</div>
+        </article>
+        <article class="admin-stat-card">
+            <div class="label">Standard Users</div>
+            <div class="value">@(userCount - adminCount)</div>
+        </article>
+    </section>
+
+    <section class="admin-panel">
+        <div class="admin-panel-header">
+            <div>
+                <h2 class="h4 mb-1">Directory</h2>
+                <p class="text-muted mb-0">Only admins can access this page and perform user CRUD actions.</p>
+            </div>
+        </div>
+
+        @if (TempData["StatusMessage"] is string statusMessage)
+        {
+            <div class="alert alert-success mb-4">@statusMessage</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">User</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Created</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.Users.Any())
+                {
+                    @foreach (var user in Model.Users)
+                    {
+                        var initials = string.Concat(
+                            string.IsNullOrWhiteSpace(user.FirstName) ? "" : user.FirstName[0],
+                            string.IsNullOrWhiteSpace(user.LastName) ? "" : user.LastName[0]
+                        ).ToUpperInvariant();
+                        <tr>
+                            <td class="ps-4">
+                                <div class="admin-user-cell">
+                                    <span class="admin-avatar">@(string.IsNullOrWhiteSpace(initials) ? "U" : initials)</span>
+                                    <div>
+                                        <div class="fw-semibold">@user.FirstName @user.LastName</div>
+                                        <div class="admin-id">@user.Address</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                @foreach (var role in user.Roles)
+                                {
+                                    <span class="role-chip @(role == "Admin" ? "role-admin" : "role-user")">
+                                        <i class="bi @(role == "Admin" ? "bi-shield-lock" : "bi-person")"></i> @role
+                                    </span>
+                                }
+                            </td>
+                            <td>@user.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-page="./Details" asp-route-id="@user.Id" class="btn btn-outline-secondary">View</a>
+                                    <a asp-page="./Edit" asp-route-id="@user.Id" class="btn btn-outline-primary">Edit</a>
+                                    <a asp-page="./Delete" asp-route-id="@user.Id" class="btn btn-outline-danger">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">No users found.</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
