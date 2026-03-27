@@ -1,0 +1,72 @@
+@model TodoView.Pages.Todos.IndexModel
+
+<section class="panel-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Title</th>
+                    <th>Description</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Todos.Any())
+                {
+                    @foreach (var item in Model.Todos)
+                    {
+                        <tr id="todo-row-@item.Id">
+                            <td class="ps-4 fw-bold">@item.Title</td>
+                            <td class="text-muted">@item.Description</td>
+                            <td class="text-center">
+                                @if (item.IsDone)
+                                {
+                                    <span class="status-pill status-pill-done">
+                                        <i class="bi bi-check2-circle"></i> Completed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill status-pill-progress">
+                                        <i class="bi bi-hourglass-split"></i> In Progress
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button"
+                                            class="btn btn-outline-primary js-todo-modal-trigger"
+                                            data-url="@Url.Page("./Index", "EditModal", new { id = item.Id })">
+                                        Edit
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-outline-secondary js-todo-modal-trigger"
+                                            data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id })">
+                                        Details
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-outline-danger js-todo-modal-trigger"
+                                            data-url="@Url.Page("./Index", "DeleteModal", new { id = item.Id })">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="p-0">
+                            <div class="empty-state">
+                                <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
+                                <p class="mb-0">No tasks found. Add one when you're ready to get moving again.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

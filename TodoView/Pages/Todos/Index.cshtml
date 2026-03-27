@@ -14,69 +14,28 @@
                     <h1 class="display-5 fw-bold mb-2">My Tasks</h1>
                     <p class="mb-0">Track priorities, review progress, and keep every task in one warm-toned dashboard.</p>
                 </div>
-                <a asp-page="Create" class="btn btn-success">
+                <button type="button"
+                        class="btn btn-success js-todo-modal-trigger"
+                        data-url="@Url.Page("./Index", "CreateModal")">
                     <i class="bi bi-plus-lg"></i> Create New Task
-                </a>
+                </button>
             </div>
         </section>
 
-        <section class="panel-card">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">@Html.DisplayNameFor(model => model.Todos[0].Title)</th>
-                            <th>@Html.DisplayNameFor(model => model.Todos[0].Description)</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-end pe-4">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Todos != null && Model.Todos.Any())
-                        {
-                            @foreach (var item in Model.Todos)
-                            {
-                                <tr>
-                                    <td class="ps-4 fw-bold">@Html.DisplayFor(modelItem => item.Title)</td>
-                                    <td class="text-muted">@Html.DisplayFor(modelItem => item.Description)</td>
-                                    <td class="text-center">
-                                        @if (item.IsDone)
-                                        {
-                                            <span class="status-pill status-pill-done">
-                                                <i class="bi bi-check2-circle"></i> Completed
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="status-pill status-pill-progress">
-                                                <i class="bi bi-hourglass-split"></i> In Progress
-                                            </span>
-                                        }
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">Edit</a>
-                                            <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">Details</a>
-                                            <a asp-page="./Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Delete</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="4" class="p-0">
-                                    <div class="empty-state">
-                                        <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
-                                        <p class="mb-0">No tasks found. Add one when you're ready to get moving again.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <div id="todo-list-container" data-refresh-url="@Url.Page("./Index", "ListPartial")">
+            <partial name="_TodoListPartial" model="Model" />
+        </div>
     </div>
 </div>
+
+<div class="modal fade" id="todoCrudModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" id="todoCrudModalContent"></div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

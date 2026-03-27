@@ -1,0 +1,59 @@
+@model TodoView.Pages.Todos.IndexModel
+
+<div class="modal-header border-0 pb-0">
+    <div>
+        <h5 class="modal-title">@Model.Todo.Title</h5>
+        <p class="text-muted mb-0">Review the current task without leaving the list.</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body pt-3">
+    <div class="detail-grid">
+        <div class="detail-card">
+            <span class="label">Status</span>
+            <div>
+                @if (Model.Todo.IsDone)
+                {
+                    <span class="status-pill status-pill-done">
+                        <i class="bi bi-check2-circle me-1"></i> Completed
+                    </span>
+                }
+                else
+                {
+                    <span class="status-pill status-pill-progress">
+                        <i class="bi bi-hourglass-split me-1"></i> In Progress
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <span class="label">Description</span>
+            <p class="value fw-normal lh-base">
+                @if (string.IsNullOrWhiteSpace(Model.Todo.Description))
+                {
+                    <em class="text-muted">No description provided for this task.</em>
+                }
+                else
+                {
+                    @Model.Todo.Description
+                }
+            </p>
+        </div>
+
+        <div class="detail-card">
+            <span class="label">Task Id</span>
+            <p class="value"><code>#@Model.Todo.Id</code></p>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer border-0 pt-0">
+    <button type="button"
+            class="btn btn-outline-primary js-todo-modal-trigger"
+            data-url="@Url.Page("./Index", "EditModal", new { id = Model.Todo.Id })">
+        Edit
+    </button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>
