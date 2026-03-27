@@ -41,7 +41,7 @@
 <div class="modal-footer border-0 pt-0">
     <form method="post"
           action="@Url.Page("./Index", "Delete", new { id = Model.Todo.Id })"
-          class="js-todo-ajax-form"
+          class="js-ajax-form"
           data-refresh-target="#todo-list-container">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Todo.Id" />

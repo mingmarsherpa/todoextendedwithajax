@@ -24,26 +24,33 @@ public class CreateModel : PageModel
     public InputModel Input { get; set; } = new();
 
     public IList<string> AvailableRoles { get; private set; } = new List<string>();
+    public string ModalTitle { get; private set; } = string.Empty;
+    public string ModalDescription { get; private set; } = string.Empty;
+    public string SubmitButtonText { get; private set; } = string.Empty;
+    public string FormAction { get; private set; } = string.Empty;
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
         await LoadRolesAsync();
+        ConfigureForm();
+        return IsAjaxRequest() ? Partial("_CreateUserFormModal", this) : Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         await LoadRolesAsync();
+        ConfigureForm();
 
         if (!ModelState.IsValid)
         {
-            return Page();
+            return IsAjaxRequest() ? Partial("_CreateUserFormModal", this) : Page();
         }
 
         var existingUser = await _userManager.FindByEmailAsync(Input.Email);
         if (existingUser is not null)
         {
             ModelState.AddModelError("Input.Email", "A user with this email already exists.");
-            return Page();
+            return IsAjaxRequest() ? Partial("_CreateUserFormModal", this) : Page();
         }
 
         await EnsureRoleExistsAsync(Input.Role);
@@ -63,7 +70,7 @@ public class CreateModel : PageModel
         if (!createResult.Succeeded)
         {
             AddErrors(createResult);
-            return Page();
+            return IsAjaxRequest() ? Partial("_CreateUserFormModal", this) : Page();
         }
 
         var rolesToAdd = Input.Role == AppRoles.Admin
@@ -74,7 +81,16 @@ public class CreateModel : PageModel
         if (!addRoleResult.Succeeded)
         {
             AddErrors(addRoleResult);
-            return Page();
+            return IsAjaxRequest() ? Partial("_CreateUserFormModal", this) : Page();
+        }
+
+        if (IsAjaxRequest())
+        {
+            return new JsonResult(new
+            {
+                success = true,
+                reloadUrl = Url.Page("./Index", "ListPartial")
+            });
         }
 
         TempData["StatusMessage"] = "User created successfully.";
@@ -85,6 +101,19 @@ public class CreateModel : PageModel
     {
         AvailableRoles = new List<string> { AppRoles.User, AppRoles.Admin };
         return Task.CompletedTask;
+    }
+
+    private void ConfigureForm()
+    {
+        ModalTitle = "Create User";
+        ModalDescription = "Create a standard account or another admin without leaving the directory.";
+        SubmitButtonText = "Create User";
+        FormAction = Url.Page("./Create") ?? "./Create";
+    }
+
+    private bool IsAjaxRequest()
+    {
+        return string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task EnsureRoleExistsAsync(string roleName)

@@ -1,0 +1,73 @@
+@model TodoView.Pages.Admin.Users.IndexModel
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-4">User</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Created</th>
+                <th class="text-end pe-4">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Users.Any())
+        {
+            @foreach (var user in Model.Users)
+            {
+                var initials = string.Concat(
+                    string.IsNullOrWhiteSpace(user.FirstName) ? "" : user.FirstName[0],
+                    string.IsNullOrWhiteSpace(user.LastName) ? "" : user.LastName[0]
+                ).ToUpperInvariant();
+                <tr>
+                    <td class="ps-4">
+                        <div class="admin-user-cell">
+                            <span class="admin-avatar">@(string.IsNullOrWhiteSpace(initials) ? "U" : initials)</span>
+                            <div>
+                                <div class="fw-semibold">@user.FirstName @user.LastName</div>
+                                <div class="admin-id">@user.Address</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@user.Email</td>
+                    <td>
+                        @foreach (var role in user.Roles)
+                        {
+                            <span class="role-chip @(role == "Admin" ? "role-admin" : "role-user")">
+                                <i class="bi @(role == "Admin" ? "bi-shield-lock" : "bi-person")"></i> @role
+                            </span>
+                        }
+                    </td>
+                    <td>@user.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                    <td class="text-end pe-4">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button"
+                                    class="btn btn-outline-secondary js-ajax-modal-trigger"
+                                    data-url="@Url.Page("./Details", new { id = user.Id })">
+                                View
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-primary js-ajax-modal-trigger"
+                                    data-url="@Url.Page("./Edit", new { id = user.Id })">
+                                Edit
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-danger js-ajax-modal-trigger"
+                                    data-url="@Url.Page("./Delete", new { id = user.Id })">
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center py-5 text-muted">No users found.</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

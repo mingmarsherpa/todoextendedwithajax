@@ -11,7 +11,7 @@
 <div class="modal-body pt-3">
     <form method="post"
           action="@Model.FormAction"
-          class="js-todo-ajax-form"
+          class="js-ajax-form"
           data-refresh-target="#todo-list-container">
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small"></div>

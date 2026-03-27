@@ -44,7 +44,12 @@ public class DetailsModel : PageModel
             Roles = roles.ToList()
         };
 
-        return Page();
+        return IsAjaxRequest() ? Partial("_UserDetailsModal", this) : Page();
+    }
+
+    private bool IsAjaxRequest()
+    {
+        return string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
     }
 
     public class UserDetailsViewModel

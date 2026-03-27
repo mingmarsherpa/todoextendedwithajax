@@ -1,6 +1,6 @@
 ﻿(() => {
-    const modalElement = document.getElementById("todoCrudModal");
-    const modalContent = document.getElementById("todoCrudModalContent");
+    const modalElement = document.getElementById("ajaxCrudModal");
+    const modalContent = document.getElementById("ajaxCrudModalContent");
 
     if (!modalElement || !modalContent || !window.bootstrap) {
         return;
@@ -30,7 +30,7 @@
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to refresh todo list: ${response.status}`);
+            throw new Error(`Failed to refresh list: ${response.status}`);
         }
 
         target.innerHTML = await response.text();
@@ -53,7 +53,7 @@
     };
 
     document.addEventListener("click", async (event) => {
-        const trigger = event.target.closest(".js-todo-modal-trigger");
+        const trigger = event.target.closest(".js-ajax-modal-trigger");
         if (!trigger) {
             return;
         }
@@ -68,7 +68,7 @@
     });
 
     document.addEventListener("submit", async (event) => {
-        const form = event.target.closest(".js-todo-ajax-form");
+        const form = event.target.closest(".js-ajax-form");
         if (!form) {
             return;
         }

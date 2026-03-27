@@ -39,7 +39,7 @@ public class DeleteModel : PageModel
             FullName = $"{user.FirstName} {user.LastName}".Trim()
         };
 
-        return Page();
+        return IsAjaxRequest() ? Partial("_UserDeleteModal", this) : Page();
     }
 
     public async Task<IActionResult> OnPostAsync(string? id)
@@ -53,7 +53,7 @@ public class DeleteModel : PageModel
         if (currentAdminId == id)
         {
             ModelState.AddModelError(string.Empty, "You cannot delete the currently signed-in admin account.");
-            return await OnGetAsync(id);
+            return await ReloadDeleteStateAsync(id);
         }
 
         var user = await _userManager.FindByIdAsync(id);
@@ -70,11 +70,31 @@ public class DeleteModel : PageModel
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return await OnGetAsync(id);
+            return await ReloadDeleteStateAsync(id);
+        }
+
+        if (IsAjaxRequest())
+        {
+            return new JsonResult(new
+            {
+                success = true,
+                reloadUrl = Url.Page("./Index", "ListPartial")
+            });
         }
 
         TempData["StatusMessage"] = "User deleted successfully.";
         return RedirectToPage("./Index");
+    }
+
+    private async Task<IActionResult> ReloadDeleteStateAsync(string id)
+    {
+        await OnGetAsync(id);
+        return IsAjaxRequest() ? Partial("_UserDeleteModal", this) : Page();
+    }
+
+    private bool IsAjaxRequest()
+    {
+        return string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
     }
 
     public class UserDeleteViewModel

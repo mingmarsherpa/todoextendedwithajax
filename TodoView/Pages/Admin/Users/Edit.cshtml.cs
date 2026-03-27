@@ -22,6 +22,10 @@ public class EditModel : PageModel
     public InputModel Input { get; set; } = new();
 
     public IList<string> AvailableRoles { get; private set; } = new List<string> { AppRoles.User, AppRoles.Admin };
+    public string ModalTitle { get; private set; } = string.Empty;
+    public string ModalDescription { get; private set; } = string.Empty;
+    public string SubmitButtonText { get; private set; } = string.Empty;
+    public string FormAction { get; private set; } = string.Empty;
 
     public async Task<IActionResult> OnGetAsync(string? id)
     {
@@ -47,14 +51,17 @@ public class EditModel : PageModel
             Role = roles.Contains(AppRoles.Admin) ? AppRoles.Admin : AppRoles.User
         };
 
-        return Page();
+        ConfigureForm(user.Id);
+        return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
+        ConfigureForm(Input.Id);
+
         if (!ModelState.IsValid)
         {
-            return Page();
+            return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
         }
 
         var user = await _userManager.FindByIdAsync(Input.Id);
@@ -67,7 +74,7 @@ public class EditModel : PageModel
         if (otherUser is not null && otherUser.Id != user.Id)
         {
             ModelState.AddModelError("Input.Email", "A user with this email already exists.");
-            return Page();
+            return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
         }
 
         user.FirstName = Input.FirstName;
@@ -80,14 +87,14 @@ public class EditModel : PageModel
             if (!setEmailResult.Succeeded)
             {
                 AddErrors(setEmailResult);
-                return Page();
+                return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
             }
 
             var setUserNameResult = await _userManager.SetUserNameAsync(user, Input.Email);
             if (!setUserNameResult.Succeeded)
             {
                 AddErrors(setUserNameResult);
-                return Page();
+                return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
             }
         }
 
@@ -99,7 +106,7 @@ public class EditModel : PageModel
             if (!removeRoleResult.Succeeded)
             {
                 AddErrors(removeRoleResult);
-                return Page();
+                return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
             }
         }
 
@@ -111,7 +118,7 @@ public class EditModel : PageModel
         if (!addRolesResult.Succeeded)
         {
             AddErrors(addRolesResult);
-            return Page();
+            return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
         }
 
         if (!string.IsNullOrWhiteSpace(Input.NewPassword))
@@ -121,7 +128,7 @@ public class EditModel : PageModel
             if (!resetPasswordResult.Succeeded)
             {
                 AddErrors(resetPasswordResult);
-                return Page();
+                return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
             }
         }
 
@@ -129,11 +136,33 @@ public class EditModel : PageModel
         if (!updateResult.Succeeded)
         {
             AddErrors(updateResult);
-            return Page();
+            return IsAjaxRequest() ? Partial("_EditUserFormModal", this) : Page();
+        }
+
+        if (IsAjaxRequest())
+        {
+            return new JsonResult(new
+            {
+                success = true,
+                reloadUrl = Url.Page("./Index", "ListPartial")
+            });
         }
 
         TempData["StatusMessage"] = "User updated successfully.";
         return RedirectToPage("./Index");
+    }
+
+    private void ConfigureForm(string userId)
+    {
+        ModalTitle = "Edit User";
+        ModalDescription = "Adjust account details, roles, or credentials without leaving the admin list.";
+        SubmitButtonText = "Save Changes";
+        FormAction = Url.Page("./Edit", new { id = userId }) ?? "./Edit";
+    }
+
+    private bool IsAjaxRequest()
+    {
+        return string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
     }
 
     private void AddErrors(IdentityResult result)

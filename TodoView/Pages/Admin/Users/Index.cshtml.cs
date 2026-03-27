@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TodoView.Authorization;
 using TodoView.Models;
@@ -19,6 +20,17 @@ public class IndexModel : PageModel
     public IList<UserListItem> Users { get; private set; } = new List<UserListItem>();
 
     public async Task OnGetAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    public async Task<PartialViewResult> OnGetListPartialAsync()
+    {
+        await LoadUsersAsync();
+        return Partial("_UserListPartial", this);
+    }
+
+    private async Task LoadUsersAsync()
     {
         var users = _userManager.Users.OrderBy(user => user.Email).ToList();
         var items = new List<UserListItem>(users.Count);
