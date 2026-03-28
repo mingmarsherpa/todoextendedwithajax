@@ -12,6 +12,7 @@
     <form method="post"
           action="@Model.FormAction"
           class="js-ajax-form"
+          novalidate
           data-refresh-target="#user-list-container">
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small"></div>

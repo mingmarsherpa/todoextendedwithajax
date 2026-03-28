@@ -40,11 +40,14 @@
 
 <div class="modal-footer border-0 pt-0">
     <form method="post"
-          action="@Url.Page("./Index", "Delete", new { id = Model.Todo.Id })"
+          action="@Url.Page("./Index", "Delete", new { id = Model.Todo.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
           class="js-ajax-form"
           data-refresh-target="#todo-list-container">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Todo.Id" />
+        <input type="hidden" asp-for="ViewMode" />
+        <input type="hidden" asp-for="StatusFilter" />
+        <input type="hidden" asp-for="SearchTerm" />
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-danger">Confirm Delete</button>
     </form>

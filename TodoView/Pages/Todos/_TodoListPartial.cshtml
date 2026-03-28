@@ -1,72 +1,150 @@
 @model TodoView.Pages.Todos.IndexModel
 
 <section class="panel-card">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th class="ps-4">Title</th>
-                    <th>Description</th>
-                    <th class="text-center">Status</th>
-                    <th class="text-end pe-4">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Todos.Any())
+    @if (Model.HasActiveFilters)
+    {
+        <div class="todo-results-meta">
+            Showing <strong>@Model.Todos.Count</strong> matching task@(Model.Todos.Count == 1 ? string.Empty : "s")
+            @if (!Model.IsAllStatusFilter)
+            {
+                <span> for <strong>@Model.StatusFilter</strong></span>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+            {
+                <span> with "<strong>@Model.SearchTerm</strong>"</span>
+            }
+        </div>
+    }
+
+    @if (Model.IsCardView)
+    {
+        @if (Model.Todos.Any())
+        {
+            <div class="todo-card-grid">
+                @foreach (var item in Model.Todos)
                 {
-                    @foreach (var item in Model.Todos)
+                    <article class="todo-card" id="todo-card-@item.Id">
+                        <div class="todo-card-header">
+                            <div>
+                                <p class="todo-card-kicker mb-2">Task #@item.Id</p>
+                                <h2 class="todo-card-title">@item.Title</h2>
+                            </div>
+                            @if (item.IsDone)
+                            {
+                                <span class="status-pill status-pill-done">
+                                    <i class="bi bi-check2-circle"></i> Completed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-pill-progress">
+                                    <i class="bi bi-hourglass-split"></i> In Progress
+                                </span>
+                            }
+                        </div>
+
+                        <p class="todo-card-description">
+                            @(string.IsNullOrWhiteSpace(item.Description) ? "No description provided for this task yet." : item.Description)
+                        </p>
+
+                        <div class="todo-card-actions">
+                            <a class="btn btn-outline-primary js-ajax-modal-trigger"
+                               href="@Url.Page("./Index", "EditModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
+                               data-url="@Url.Page("./Index", "EditModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                Edit
+                            </a>
+                            <button type="button"
+                                    class="btn btn-outline-secondary js-ajax-modal-trigger"
+                                    data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                Details
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-danger js-ajax-modal-trigger"
+                                    data-url="@Url.Page("./Index", "DeleteModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                Delete
+                            </button>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
+                <p class="mb-0">No tasks match the current filters. Adjust the search or create a new task.</p>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Title</th>
+                        <th>Description</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Todos.Any())
                     {
-                        <tr id="todo-row-@item.Id">
-                            <td class="ps-4 fw-bold">@item.Title</td>
-                            <td class="text-muted">@item.Description</td>
-                            <td class="text-center">
-                                @if (item.IsDone)
-                                {
-                                    <span class="status-pill status-pill-done">
-                                        <i class="bi bi-check2-circle"></i> Completed
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="status-pill status-pill-progress">
-                                        <i class="bi bi-hourglass-split"></i> In Progress
-                                    </span>
-                                }
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button type="button"
-                                            class="btn btn-outline-primary js-ajax-modal-trigger"
-                                            data-url="@Url.Page("./Index", "EditModal", new { id = item.Id })">
-                                        Edit
-                                    </button>
-                                    <button type="button"
-                                            class="btn btn-outline-secondary js-ajax-modal-trigger"
-                                            data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id })">
-                                        Details
-                                    </button>
-                                    <button type="button"
-                                            class="btn btn-outline-danger js-ajax-modal-trigger"
-                                            data-url="@Url.Page("./Index", "DeleteModal", new { id = item.Id })">
-                                        Delete
-                                    </button>
+                        @foreach (var item in Model.Todos)
+                        {
+                            <tr id="todo-row-@item.Id">
+                                <td class="ps-4 fw-bold">@item.Title</td>
+                                <td class="text-muted">@item.Description</td>
+                                <td class="text-center">
+                                    @if (item.IsDone)
+                                    {
+                                        <span class="status-pill status-pill-done">
+                                            <i class="bi bi-check2-circle"></i> Completed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill status-pill-progress">
+                                            <i class="bi bi-hourglass-split"></i> In Progress
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a class="btn btn-outline-primary js-ajax-modal-trigger"
+                                           href="@Url.Page("./Index", "EditModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
+                                           data-url="@Url.Page("./Index", "EditModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                            Edit
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-outline-secondary js-ajax-modal-trigger"
+                                                data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                            Details
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-outline-danger js-ajax-modal-trigger"
+                                                data-url="@Url.Page("./Index", "DeleteModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="p-0">
+                                <div class="empty-state">
+                                    <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
+                                    <p class="mb-0">No tasks match the current filters. Adjust the search or create a new task.</p>
                                 </div>
                             </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="4" class="p-0">
-                            <div class="empty-state">
-                                <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
-                                <p class="mb-0">No tasks found. Add one when you're ready to get moving again.</p>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
+    }
 </section>

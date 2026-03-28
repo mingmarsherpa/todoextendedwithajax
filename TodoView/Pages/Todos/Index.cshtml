@@ -14,17 +14,139 @@
                     <h1 class="display-5 fw-bold mb-2">My Tasks</h1>
                     <p class="mb-0">Track priorities, review progress, and keep every task in one warm-toned dashboard.</p>
                 </div>
-                <button type="button"
-                        class="btn btn-success js-ajax-modal-trigger"
-                        data-url="@Url.Page("./Index", "CreateModal")">
-                    <i class="bi bi-plus-lg"></i> Create New Task
-                </button>
+                <div class="todo-hero-actions">
+                    <form method="get" class="todo-filter-bar" role="search">
+                        <input type="hidden" name="view" value="@Model.ViewMode" />
+                        <div class="todo-search-input">
+                            <i class="bi bi-search"></i>
+                            <input name="q"
+                                   value="@Model.SearchTerm"
+                                   class="form-control"
+                                   type="search"
+                                   placeholder="Search tasks" />
+                        </div>
+                        <div class="filter-chip-group" role="group" aria-label="Todo status filter">
+                            <button type="submit"
+                                    name="status"
+                                    value="all"
+                                    class="filter-chip @(Model.IsAllStatusFilter ? "is-active" : string.Empty)">
+                                All
+                            </button>
+                            <button type="submit"
+                                    name="status"
+                                    value="active"
+                                    class="filter-chip @(Model.IsActiveStatusFilter ? "is-active" : string.Empty)">
+                                Active
+                            </button>
+                            <button type="submit"
+                                    name="status"
+                                    value="completed"
+                                    class="filter-chip @(Model.IsCompletedStatusFilter ? "is-active" : string.Empty)">
+                                Completed
+                            </button>
+                        </div>
+                        @if (Model.HasActiveFilters)
+                        {
+                            <a class="filter-clear-link" href="@Url.Page("./Index", new { view = Model.ViewMode })">Clear</a>
+                        }
+                    </form>
+
+                    <nav class="view-toggle" aria-label="Todo view mode">
+                        <a class="view-toggle-option @(Model.IsListView ? "is-active" : string.Empty)"
+                           href="@Url.Page("./Index", new { view = "list", status = Model.StatusFilter, q = Model.SearchTerm })"
+                           aria-current="@(Model.IsListView ? "page" : null)">
+                            <i class="bi bi-list-task"></i>
+                            <span>List</span>
+                        </a>
+                        <a class="view-toggle-option @(Model.IsCardView ? "is-active" : string.Empty)"
+                           href="@Url.Page("./Index", new { view = "card", status = Model.StatusFilter, q = Model.SearchTerm })"
+                           aria-current="@(Model.IsCardView ? "page" : null)">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            <span>Cards</span>
+                        </a>
+                    </nav>
+
+                    <a class="btn btn-success js-ajax-modal-trigger"
+                       href="@Url.Page("./Index", "CreateModal", new { view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
+                       data-url="@Url.Page("./Index", "CreateModal", new { view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                        <i class="bi bi-plus-lg"></i> Create New Task
+                    </a>
+                </div>
             </div>
         </section>
 
-        <div id="todo-list-container" data-refresh-url="@Url.Page("./Index", "ListPartial")">
+        <section class="todo-summary-strip" aria-label="Todo summary">
+            <div class="summary-pill">
+                <span class="summary-pill-label">Total</span>
+                <strong>@Model.TotalTodoCount</strong>
+            </div>
+            <div class="summary-pill">
+                <span class="summary-pill-label">Active</span>
+                <strong>@Model.ActiveTodoCount</strong>
+            </div>
+            <div class="summary-pill">
+                <span class="summary-pill-label">Completed</span>
+                <strong>@Model.CompletedTodoCount</strong>
+            </div>
+        </section>
+
+        <div id="todo-list-container" data-refresh-url="@Url.Page("./Index", "ListPartial", new { view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
             <partial name="_TodoListPartial" model="Model" />
         </div>
+
+        @if (Model.ShowInlineForm)
+        {
+            <section class="panel-card">
+                <div class="panel-header mb-4">
+                    <div>
+                        <h2 class="h3 mb-2">@Model.ModalTitle</h2>
+                        <p class="text-muted mb-0">@Model.ModalDescription</p>
+                    </div>
+                    <a class="btn btn-outline-secondary"
+                       href="@Url.Page("./Index", new { view = Model.ViewMode, status = Model.IsAllStatusFilter ? null : Model.StatusFilter, q = string.IsNullOrWhiteSpace(Model.SearchTerm) ? null : Model.SearchTerm })">
+                        Back to list
+                    </a>
+                </div>
+
+                <form method="post" action="@Model.FormAction" novalidate>
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="alert alert-danger p-2 small"></div>
+                    <input type="hidden" asp-for="Todo.Id" />
+                    <input type="hidden" asp-for="ViewMode" />
+                    <input type="hidden" asp-for="StatusFilter" />
+                    <input type="hidden" asp-for="SearchTerm" />
+
+                    <div class="mb-3">
+                        <label asp-for="Todo.Title" class="form-label fw-bold"></label>
+                        <input asp-for="Todo.Title" class="form-control" placeholder="What needs to be done?" />
+                        <span asp-validation-for="Todo.Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Todo.Description" class="form-label fw-bold"></label>
+                        <textarea asp-for="Todo.Description" class="form-control" rows="3" placeholder="Add some details..."></textarea>
+                        <span asp-validation-for="Todo.Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-0">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="Todo.IsDone" id="todo-inline-status-switch">
+                            <label class="form-check-label fw-bold" for="todo-inline-status-switch">
+                                Mark as completed
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a class="btn btn-outline-secondary"
+                           href="@Url.Page("./Index", new { view = Model.ViewMode, status = Model.IsAllStatusFilter ? null : Model.StatusFilter, q = string.IsNullOrWhiteSpace(Model.SearchTerm) ? null : Model.SearchTerm })">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">@Model.SubmitButtonText</button>
+                    </div>
+                </form>
+            </section>
+        }
     </div>
 </div>
 

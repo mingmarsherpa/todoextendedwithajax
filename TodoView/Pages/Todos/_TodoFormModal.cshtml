@@ -12,10 +12,14 @@
     <form method="post"
           action="@Model.FormAction"
           class="js-ajax-form"
+          novalidate
           data-refresh-target="#todo-list-container">
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small"></div>
+        <div asp-validation-summary="All" class="alert alert-danger p-2 small"></div>
         <input type="hidden" asp-for="Todo.Id" />
+        <input type="hidden" asp-for="ViewMode" />
+        <input type="hidden" asp-for="StatusFilter" />
+        <input type="hidden" asp-for="SearchTerm" />
 
         <div class="mb-3">
             <label asp-for="Todo.Title" class="form-label fw-bold"></label>

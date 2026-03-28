@@ -50,10 +50,10 @@
 </div>
 
 <div class="modal-footer border-0 pt-0">
-    <button type="button"
-            class="btn btn-outline-primary js-ajax-modal-trigger"
-            data-url="@Url.Page("./Index", "EditModal", new { id = Model.Todo.Id })">
+    <a class="btn btn-outline-primary js-ajax-modal-trigger"
+       href="@Url.Page("./Index", "EditModal", new { id = Model.Todo.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
+       data-url="@Url.Page("./Index", "EditModal", new { id = Model.Todo.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
         Edit
-    </button>
+    </a>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>

@@ -12,11 +12,28 @@
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
 
+    const renderRequestError = (message) => {
+        const alertMarkup = `
+            <div class="alert alert-danger m-3" role="alert">
+                ${message}
+            </div>`;
+
+        const existingBody = modalContent.querySelector(".modal-body");
+        if (existingBody) {
+            existingBody.insertAdjacentHTML("afterbegin", alertMarkup);
+            return;
+        }
+
+        modalContent.innerHTML = alertMarkup;
+        modal.show();
+    };
+
     const parseValidation = (form) => {
         if (!form || !window.jQuery?.validator?.unobtrusive) {
             return;
         }
 
+        form.noValidate = true;
         $(form).removeData("validator");
         $(form).removeData("unobtrusiveValidation");
         $.validator.unobtrusive.parse(form);
@@ -60,8 +77,13 @@
 
         event.preventDefault();
 
+        const modalUrl = trigger.dataset.url || trigger.getAttribute("href");
+        if (!modalUrl) {
+            return;
+        }
+
         try {
-            await loadModal(trigger.dataset.url);
+            await loadModal(modalUrl);
         } catch (error) {
             console.error(error);
         }
@@ -74,10 +96,7 @@
         }
 
         event.preventDefault();
-
-        if (window.jQuery && typeof $(form).valid === "function" && !$(form).valid()) {
-            return;
-        }
+        form.noValidate = true;
 
         const token = form.querySelector("input[name='__RequestVerificationToken']")?.value
             || document.querySelector("input[name='__RequestVerificationToken']")?.value;
@@ -87,37 +106,46 @@
             formData.append("__RequestVerificationToken", token);
         }
 
-        const response = await fetch(form.action, {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Request failed: ${response.status}`);
             }
-        });
 
-        const contentType = response.headers.get("content-type") || "";
+            const contentType = response.headers.get("content-type") || "";
 
-        if (contentType.includes("application/json")) {
-            const result = await response.json();
-            if (!result.success) {
+            if (contentType.includes("application/json")) {
+                const result = await response.json();
+                if (!result.success) {
+                    return;
+                }
+
+                const targetSelector = form.dataset.refreshTarget;
+                const refreshTarget = targetSelector ? document.querySelector(targetSelector) : null;
+                const refreshUrl = result.reloadUrl || refreshTarget?.dataset.refreshUrl;
+
+                if (refreshTarget && refreshUrl) {
+                    await refreshList(refreshTarget, refreshUrl);
+                }
+
+                modal.hide();
                 return;
             }
 
-            const targetSelector = form.dataset.refreshTarget;
-            const refreshTarget = targetSelector ? document.querySelector(targetSelector) : null;
-            const refreshUrl = result.reloadUrl || refreshTarget?.dataset.refreshUrl;
-
-            if (refreshTarget && refreshUrl) {
-                await refreshList(refreshTarget, refreshUrl);
-            }
-
-            modal.hide();
-            return;
+            modalContent.innerHTML = await response.text();
+            parseValidation(modalContent.querySelector("form"));
+        } catch (error) {
+            console.error(error);
+            renderRequestError("The request could not be completed. Check the server response and try again.");
         }
-
-        modalContent.innerHTML = await response.text();
-        parseValidation(modalContent.querySelector("form"));
-    });
+    }, true);
 
     modalElement.addEventListener("hidden.bs.modal", () => {
         modalContent.innerHTML = "";
