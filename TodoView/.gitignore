@@ -4,6 +4,7 @@
 bin/
 obj/
 doc/
+docs/
 README.md
 ############################
 # User-specific files
