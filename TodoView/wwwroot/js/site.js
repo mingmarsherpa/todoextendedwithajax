@@ -12,6 +12,65 @@
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
 
+    const queuePopup = (config) => {
+        if (!Array.isArray(window.__pendingPopups)) {
+            window.__pendingPopups = [];
+        }
+
+        window.__pendingPopups.push(config);
+    };
+
+    const showPopup = (config) => {
+        if (!config?.message) {
+            return;
+        }
+
+        if (typeof window.Pop?.show === "function") {
+            window.Pop.show(config);
+            return;
+        }
+
+        queuePopup(config);
+        document.dispatchEvent(new CustomEvent("pop:show", { detail: config }));
+    };
+
+    const buildRecordLabelFromForm = (form) => {
+        const firstName = form.querySelector("[name='Input.FirstName']")?.value?.trim() || "";
+        const lastName = form.querySelector("[name='Input.LastName']")?.value?.trim() || "";
+        const email = form.querySelector("[name='Input.Email']")?.value?.trim() || "";
+        const todoTitle = form.querySelector("[name='Todo.Title']")?.value?.trim() || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        return fullName || email || todoTitle || "the item";
+    };
+
+    const buildFallbackNotification = (form) => {
+        const actionType = form.dataset.successAction;
+        const userLabel = form.dataset.successUser || buildRecordLabelFromForm(form);
+
+        if (!actionType) {
+            return null;
+        }
+
+        const titleMap = {
+            create: "User created",
+            edit: "User updated",
+            delete: "User deleted"
+        };
+
+        const verbMap = {
+            create: "Created",
+            edit: "Updated",
+            delete: "Deleted"
+        };
+
+        return {
+            title: form.dataset.successTitle || titleMap[actionType] || "User updated",
+            message: form.dataset.successMessage || `${verbMap[actionType] || "Updated"} ${userLabel}.`,
+            tone: form.dataset.successTone || "success"
+        };
+    };
+
     const renderRequestError = (message) => {
         const alertMarkup = `
             <div class="alert alert-danger m-3" role="alert">
@@ -26,6 +85,11 @@
 
         modalContent.innerHTML = alertMarkup;
         modal.show();
+        showPopup({
+            title: "Request failed",
+            message,
+            tone: "danger"
+        });
     };
 
     const parseValidation = (form) => {
@@ -51,9 +115,12 @@
         }
 
         target.innerHTML = await response.text();
+        document.dispatchEvent(new CustomEvent("ajax:content-refreshed", {
+            detail: { target, url }
+        }));
     };
 
-    const loadModal = async (url) => {
+    const loadModal = async (url, trigger) => {
         const response = await fetch(url, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -67,6 +134,14 @@
         modalContent.innerHTML = await response.text();
         parseValidation(modalContent.querySelector("form"));
         modal.show();
+
+        if (trigger?.dataset.popMessage) {
+            showPopup({
+                title: trigger.dataset.popTitle,
+                message: trigger.dataset.popMessage,
+                tone: trigger.dataset.popTone || "info"
+            });
+        }
     };
 
     document.addEventListener("click", async (event) => {
@@ -83,9 +158,14 @@
         }
 
         try {
-            await loadModal(modalUrl);
+            await loadModal(modalUrl, trigger);
         } catch (error) {
             console.error(error);
+            showPopup({
+                title: "Modal failed",
+                message: "The dialog could not be opened. Try again.",
+                tone: "danger"
+            });
         }
     });
 
@@ -136,6 +216,7 @@
                 }
 
                 modal.hide();
+                showPopup(result.notification || buildFallbackNotification(form));
                 return;
             }
 

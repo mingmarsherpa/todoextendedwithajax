@@ -13,7 +13,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
+@{
+    var popMessage = TempData["PopMessage"] as string;
+    var popTitle = TempData["PopTitle"] as string;
+    var popTone = TempData["PopTone"] as string;
+}
 <div class="app-backdrop" aria-hidden="true"></div>
+<div id="app-pop-root" class="app-pop-root" aria-live="polite" aria-atomic="true"></div>
+@if (!string.IsNullOrWhiteSpace(popMessage))
+{
+    <div id="app-pop-config"
+         data-pop-message="@popMessage"
+         data-pop-title="@popTitle"
+         data-pop-tone="@popTone"
+         hidden></div>
+}
 
 @* Only show header if "HideNavbar" is NOT set in the child page *@
 @if (ViewData["HideNavbar"] == null)
@@ -61,6 +75,7 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/pop.js" asp-append-version="true"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 @await RenderSectionAsync("Scripts", required: false)

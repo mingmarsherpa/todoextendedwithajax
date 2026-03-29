@@ -89,11 +89,17 @@ public class CreateModel : PageModel
             return new JsonResult(new
             {
                 success = true,
-                reloadUrl = Url.Page("./Index", "ListPartial")
+                reloadUrl = Url.Page("./Index", "ListPartial"),
+                notification = new
+                {
+                    title = "User created",
+                    message = $"Created {(GetUserLabel(user.FirstName, user.LastName, user.Email) ?? "the user")}.",
+                    tone = "success"
+                }
             });
         }
 
-        TempData["StatusMessage"] = "User created successfully.";
+        SetPopup("User created", $"Created {(GetUserLabel(user.FirstName, user.LastName, user.Email) ?? "the user")}.");
         return RedirectToPage("./Index");
     }
 
@@ -143,6 +149,19 @@ public class CreateModel : PageModel
         {
             ModelState.AddModelError(string.Empty, error.Description);
         }
+    }
+
+    private void SetPopup(string title, string message, string tone = "success")
+    {
+        TempData["PopTitle"] = title;
+        TempData["PopMessage"] = message;
+        TempData["PopTone"] = tone;
+    }
+
+    private static string? GetUserLabel(string firstName, string lastName, string? email)
+    {
+        var fullName = $"{firstName} {lastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? email : fullName;
     }
 
     public class InputModel

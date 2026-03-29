@@ -1,3 +1,4 @@
+@using System.Text.Json
 @model TodoView.Pages.Todos.IndexModel
 
 <section class="panel-card">
@@ -47,6 +48,21 @@
                             @(string.IsNullOrWhiteSpace(item.Description) ? "No description provided for this task yet." : item.Description)
                         </p>
 
+                        <div class="text-muted small mb-3">
+                            @if (item.ReminderAt.HasValue)
+                            {
+                                <span><i class="bi bi-bell me-1"></i>Reminder @item.ReminderAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                                @if (item.ReminderTriggeredAt.HasValue)
+                                {
+                                    <span class="ms-2">(sent)</span>
+                                }
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-bell-slash me-1"></i>No reminder set</span>
+                            }
+                        </div>
+
                         <div class="todo-card-actions">
                             <a class="btn btn-outline-primary js-ajax-modal-trigger"
                                href="@Url.Page("./Index", "EditModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
@@ -55,7 +71,10 @@
                             </a>
                             <button type="button"
                                     class="btn btn-outline-secondary js-ajax-modal-trigger"
-                                    data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                    data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
+                                    data-pop-title="Task details"
+                                    data-pop-message="Opened '@item.Title'."
+                                    data-pop-tone="info">
                                 Details
                             </button>
                             <button type="button"
@@ -84,6 +103,7 @@
                     <tr>
                         <th class="ps-4">Title</th>
                         <th>Description</th>
+                        <th>Reminder</th>
                         <th class="text-center">Status</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
@@ -96,6 +116,20 @@
                             <tr id="todo-row-@item.Id">
                                 <td class="ps-4 fw-bold">@item.Title</td>
                                 <td class="text-muted">@item.Description</td>
+                                <td class="text-muted small">
+                                    @if (item.ReminderAt.HasValue)
+                                    {
+                                        <span><i class="bi bi-bell me-1"></i>@item.ReminderAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                                        @if (item.ReminderTriggeredAt.HasValue)
+                                        {
+                                            <span class="d-block">(sent)</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span><i class="bi bi-bell-slash me-1"></i>None</span>
+                                    }
+                                </td>
                                 <td class="text-center">
                                     @if (item.IsDone)
                                     {
@@ -119,7 +153,10 @@
                                         </a>
                                         <button type="button"
                                                 class="btn btn-outline-secondary js-ajax-modal-trigger"
-                                                data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })">
+                                                data-url="@Url.Page("./Index", "DetailsModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
+                                                data-pop-title="Task details"
+                                                data-pop-message="Opened '@item.Title'."
+                                                data-pop-tone="info">
                                             Details
                                         </button>
                                         <button type="button"
@@ -135,7 +172,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="4" class="p-0">
+                            <td colspan="5" class="p-0">
                                 <div class="empty-state">
                                     <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
                                     <p class="mb-0">No tasks match the current filters. Adjust the search or create a new task.</p>
@@ -148,3 +185,15 @@
         </div>
     }
 </section>
+
+<div id="todo-reminder-config"
+     data-trigger-url="@Url.Page("./Index", "TriggerReminder")"
+     hidden></div>
+<script id="todo-reminder-data" type="application/json">
+    @Html.Raw(JsonSerializer.Serialize(Model.PendingReminders.Select(reminder => new
+    {
+        id = reminder.Id,
+        title = reminder.Title,
+        reminderAt = reminder.ReminderAt
+    })))
+</script>

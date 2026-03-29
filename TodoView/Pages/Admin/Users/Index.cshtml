@@ -47,11 +47,6 @@
             </div>
         </div>
 
-        @if (TempData["StatusMessage"] is string statusMessage)
-        {
-            <div class="alert alert-success mb-4">@statusMessage</div>
-        }
-
         <div id="user-list-container" data-refresh-url="@Url.Page("./Index", "ListPartial")">
             <partial name="_UserListPartial" model="Model" />
         </div>

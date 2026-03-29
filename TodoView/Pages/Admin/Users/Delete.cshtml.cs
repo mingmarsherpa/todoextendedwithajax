@@ -62,6 +62,7 @@ public class DeleteModel : PageModel
             return NotFound();
         }
 
+        var userLabel = GetUserLabel(user.FirstName, user.LastName, user.Email) ?? "the user";
         var deleteResult = await _userManager.DeleteAsync(user);
         if (!deleteResult.Succeeded)
         {
@@ -78,11 +79,17 @@ public class DeleteModel : PageModel
             return new JsonResult(new
             {
                 success = true,
-                reloadUrl = Url.Page("./Index", "ListPartial")
+                reloadUrl = Url.Page("./Index", "ListPartial"),
+                notification = new
+                {
+                    title = "User deleted",
+                    message = $"Deleted {userLabel}.",
+                    tone = "success"
+                }
             });
         }
 
-        TempData["StatusMessage"] = "User deleted successfully.";
+        SetPopup("User deleted", $"Deleted {userLabel}.");
         return RedirectToPage("./Index");
     }
 
@@ -95,6 +102,19 @@ public class DeleteModel : PageModel
     private bool IsAjaxRequest()
     {
         return string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void SetPopup(string title, string message, string tone = "success")
+    {
+        TempData["PopTitle"] = title;
+        TempData["PopMessage"] = message;
+        TempData["PopTone"] = tone;
+    }
+
+    private static string? GetUserLabel(string firstName, string lastName, string? email)
+    {
+        var fullName = $"{firstName} {lastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName) ? email : fullName;
     }
 
     public class UserDeleteViewModel

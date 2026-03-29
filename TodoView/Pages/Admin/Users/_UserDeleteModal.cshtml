@@ -31,7 +31,11 @@
     <form method="post"
           action="@Url.Page("./Delete", new { id = Model.UserDetails.Id })"
           class="js-ajax-form"
-          data-refresh-target="#user-list-container">
+          data-refresh-target="#user-list-container"
+          data-success-action="delete"
+          data-success-title="User deleted"
+          data-success-tone="success"
+          data-success-user="@(string.IsNullOrWhiteSpace(Model.UserDetails.FullName) ? Model.UserDetails.Email : Model.UserDetails.FullName)">
         @Html.AntiForgeryToken()
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-danger">Delete User</button>

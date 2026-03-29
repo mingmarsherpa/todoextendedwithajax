@@ -13,7 +13,10 @@
           action="@Model.FormAction"
           class="js-ajax-form"
           novalidate
-          data-refresh-target="#todo-list-container">
+          data-refresh-target="#todo-list-container"
+          data-success-action="@(Model.Todo.Id == 0 ? "create" : "edit")"
+          data-success-title="@(Model.Todo.Id == 0 ? "Task created" : "Task updated")"
+          data-success-tone="success">
         @Html.AntiForgeryToken()
         <div asp-validation-summary="All" class="alert alert-danger p-2 small"></div>
         <input type="hidden" asp-for="Todo.Id" />
@@ -31,6 +34,13 @@
             <label asp-for="Todo.Description" class="form-label fw-bold"></label>
             <textarea asp-for="Todo.Description" class="form-control" rows="3" placeholder="Add some details..."></textarea>
             <span asp-validation-for="Todo.Description" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Todo.ReminderAt" class="form-label fw-bold"></label>
+            <input asp-for="Todo.ReminderAt" type="datetime-local" class="form-control" />
+            <span asp-validation-for="Todo.ReminderAt" class="text-danger small"></span>
+            <div class="form-text">Leave this empty to skip reminders. The popup appears while this page is open.</div>
         </div>
 
         <div class="mb-0">

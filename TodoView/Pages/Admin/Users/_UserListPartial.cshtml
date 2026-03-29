@@ -20,6 +20,9 @@
                     string.IsNullOrWhiteSpace(user.FirstName) ? "" : user.FirstName[0],
                     string.IsNullOrWhiteSpace(user.LastName) ? "" : user.LastName[0]
                 ).ToUpperInvariant();
+                var displayName = string.IsNullOrWhiteSpace($"{user.FirstName} {user.LastName}".Trim())
+                    ? user.Email
+                    : $"{user.FirstName} {user.LastName}".Trim();
                 <tr>
                     <td class="ps-4">
                         <div class="admin-user-cell">
@@ -44,7 +47,10 @@
                         <div class="btn-group btn-group-sm">
                             <button type="button"
                                     class="btn btn-outline-secondary js-ajax-modal-trigger"
-                                    data-url="@Url.Page("./Details", new { id = user.Id })">
+                                    data-url="@Url.Page("./Details", new { id = user.Id })"
+                                    data-pop-title="User details"
+                                    data-pop-message="Opened the profile for @displayName"
+                                    data-pop-tone="info">
                                 View
                             </button>
                             <button type="button"

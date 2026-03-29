@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -26,6 +27,7 @@ namespace TodoView.Pages.Todos
         }
 
         public IList<Todo> Todos { get; set; } = new List<Todo>();
+        public IReadOnlyList<TodoReminderClientModel> PendingReminders { get; private set; } = [];
 
         [BindProperty]
         public Todo Todo { get; set; } = new();
@@ -56,6 +58,13 @@ namespace TodoView.Pages.Todos
         public int TotalTodoCount { get; private set; }
         public int CompletedTodoCount { get; private set; }
         public int ActiveTodoCount => TotalTodoCount - CompletedTodoCount;
+
+        public sealed class TodoReminderClientModel
+        {
+            public int Id { get; init; }
+            public string Title { get; init; } = string.Empty;
+            public string ReminderAt { get; init; } = string.Empty;
+        }
 
         public async Task OnGetAsync()
         {
@@ -98,6 +107,7 @@ namespace TodoView.Pages.Todos
             ModelState.Remove(nameof(SearchTerm));
             ModelState.Remove("Todo.UserId");
             ModelState.Remove("Todo.User");
+            ModelState.Remove("Todo.ReminderTriggeredAt");
 
             var user = await _userManager.GetUserAsync(User);
             if (user is null)
@@ -125,7 +135,9 @@ namespace TodoView.Pages.Todos
 
             Todo.UserId = user.Id;
             Todo.User = user;
+            Todo.Title = Todo.Title.Trim();
             Todo.Description = Todo.Description?.Trim() ?? string.Empty;
+            Todo.ReminderTriggeredAt = null;
             _context.TodoItems.Add(Todo);
             await _context.SaveChangesAsync();
 
@@ -134,7 +146,13 @@ namespace TodoView.Pages.Todos
                 return new JsonResult(new
                 {
                     success = true,
-                    reloadUrl = BuildPageUrl("ListPartial")
+                    reloadUrl = BuildPageUrl("ListPartial"),
+                    notification = new
+                    {
+                        title = "Task created",
+                        message = $"Created \"{Todo.Title}\".",
+                        tone = "success"
+                    }
                 });
             }
 
@@ -175,6 +193,7 @@ namespace TodoView.Pages.Todos
             ModelState.Remove(nameof(SearchTerm));
             ModelState.Remove("Todo.UserId");
             ModelState.Remove("Todo.User");
+            ModelState.Remove("Todo.ReminderTriggeredAt");
 
             var userId = _userManager.GetUserId(User);
             if (userId is null)
@@ -206,9 +225,18 @@ namespace TodoView.Pages.Todos
                 return Page();
             }
 
-            existingTodo.Title = Todo.Title;
+            var normalizedReminderAt = Todo.ReminderAt;
+            var reminderChanged = existingTodo.ReminderAt != normalizedReminderAt;
+
+            existingTodo.Title = Todo.Title.Trim();
             existingTodo.Description = Todo.Description?.Trim() ?? string.Empty;
             existingTodo.IsDone = Todo.IsDone;
+            existingTodo.ReminderAt = normalizedReminderAt;
+
+            if (normalizedReminderAt is null || reminderChanged)
+            {
+                existingTodo.ReminderTriggeredAt = null;
+            }
 
             await _context.SaveChangesAsync();
 
@@ -217,7 +245,13 @@ namespace TodoView.Pages.Todos
                 return new JsonResult(new
                 {
                     success = true,
-                    reloadUrl = BuildPageUrl("ListPartial")
+                    reloadUrl = BuildPageUrl("ListPartial"),
+                    notification = new
+                    {
+                        title = "Task updated",
+                        message = $"Updated \"{existingTodo.Title}\".",
+                        tone = "success"
+                    }
                 });
             }
 
@@ -250,6 +284,38 @@ namespace TodoView.Pages.Todos
             return Partial("_TodoDeleteModal", this);
         }
 
+        public async Task<IActionResult> OnPostTriggerReminderAsync(int id)
+        {
+            var todo = await FindOwnedTodoAsync(id);
+            if (todo is null)
+            {
+                return new JsonResult(new { success = false })
+                {
+                    StatusCode = StatusCodes.Status404NotFound
+                };
+            }
+
+            if (todo.IsDone || todo.ReminderAt is null || todo.ReminderTriggeredAt.HasValue)
+            {
+                return new JsonResult(new { success = false });
+            }
+
+            todo.ReminderTriggeredAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(new
+            {
+                success = true,
+                notification = new
+                {
+                    title = "Reminder",
+                    message = $"\"{todo.Title}\" is due now.",
+                    tone = "info",
+                    duration = 5000
+                }
+            });
+        }
+
         public async Task<IActionResult> OnPostDeleteAsync(int? id)
         {
             NormalizeFilters();
@@ -265,7 +331,13 @@ namespace TodoView.Pages.Todos
             return new JsonResult(new
             {
                 success = true,
-                reloadUrl = BuildPageUrl("ListPartial")
+                reloadUrl = BuildPageUrl("ListPartial"),
+                notification = new
+                {
+                    title = "Task deleted",
+                    message = $"Deleted \"{todo.Title}\".",
+                    tone = "success"
+                }
             });
         }
 
@@ -287,6 +359,22 @@ namespace TodoView.Pages.Todos
             CompletedTodoCount = await ownedTodos.CountAsync(t => t.IsDone);
 
             var filteredTodos = ownedTodos;
+
+            var reminderTodos = await ownedTodos
+                .AsNoTracking()
+                .Where(t => !t.IsDone && t.ReminderAt.HasValue && !t.ReminderTriggeredAt.HasValue)
+                .OrderBy(t => t.ReminderAt)
+                .Select(t => new { t.Id, t.Title, t.ReminderAt })
+                .ToListAsync();
+
+            PendingReminders = reminderTodos
+                .Select(t => new TodoReminderClientModel
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    ReminderAt = t.ReminderAt!.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+                })
+                .ToList();
 
             filteredTodos = StatusFilter switch
             {

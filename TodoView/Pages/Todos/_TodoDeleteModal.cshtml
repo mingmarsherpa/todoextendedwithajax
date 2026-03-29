@@ -42,7 +42,11 @@
     <form method="post"
           action="@Url.Page("./Index", "Delete", new { id = Model.Todo.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
           class="js-ajax-form"
-          data-refresh-target="#todo-list-container">
+          data-refresh-target="#todo-list-container"
+          data-success-action="delete"
+          data-success-title="Task deleted"
+          data-success-tone="success"
+          data-success-user="@Model.Todo.Title">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Todo.Id" />
         <input type="hidden" asp-for="ViewMode" />

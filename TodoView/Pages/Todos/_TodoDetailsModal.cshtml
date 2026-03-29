@@ -46,6 +46,25 @@
             <span class="label">Task Id</span>
             <p class="value"><code>#@Model.Todo.Id</code></p>
         </div>
+
+        <div class="detail-card">
+            <span class="label">Reminder</span>
+            <p class="value fw-normal">
+                @if (Model.Todo.ReminderAt.HasValue)
+                {
+                    @Model.Todo.ReminderAt.Value.ToString("MMM d, yyyy h:mm tt")
+
+                    @if (Model.Todo.ReminderTriggeredAt.HasValue)
+                    {
+                        <span class="d-block text-muted small">Popup already sent for this reminder.</span>
+                    }
+                }
+                else
+                {
+                    <em class="text-muted">No reminder set for this task.</em>
+                }
+            </p>
+        </div>
     </div>
 </div>
 
