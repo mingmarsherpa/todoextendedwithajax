@@ -1,10 +1,14 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Hangfire;
+using Hangfire.SqlServer;
+using TodoView.Services;
 using TodoView.Authorization;
 using TodoView.Data;
 using TodoView.Data.Seed;
 using TodoView.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +32,15 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeFolder("/Admin/Users", AppRoles.Admin);
 });
 
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<ReminderScheduler>();
+
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
@@ -44,7 +57,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
-
+app.UseHangfireDashboard("/hangfire");
 app.UseAuthentication();   // FIRST
 app.UseAuthorization();
 

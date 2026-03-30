@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Hangfire;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using TodoView.Data;
 using TodoView.Models;
+using TodoView.Services;
 
 namespace TodoView.Pages.Todos
 {
@@ -19,11 +21,14 @@ namespace TodoView.Pages.Todos
         private const string CompletedStatusFilter = "completed";
         private readonly TodoDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly ReminderScheduler _scheduler; 
 
-        public IndexModel(TodoDbContext context, UserManager<User> userManager)
+        public IndexModel(TodoDbContext context, UserManager<User> userManager,ReminderScheduler scheduler)
         {
             _context = context;
             _userManager = userManager;
+            _scheduler = scheduler;  
+            
         }
 
         public IList<Todo> Todos { get; set; } = new List<Todo>();
@@ -140,6 +145,16 @@ namespace TodoView.Pages.Todos
             Todo.ReminderTriggeredAt = null;
             _context.TodoItems.Add(Todo);
             await _context.SaveChangesAsync();
+            if (Todo.ReminderAt.HasValue && user.Email is not null)
+            {
+                var jobId = _scheduler.Schedule(
+                    user.Email,
+                    $"Reminder: \"{Todo.Title}\"",
+                    new DateTimeOffset(Todo.ReminderAt.Value, TimeSpan.Zero));
+
+                Todo.HangfireJobId = jobId;
+                await _context.SaveChangesAsync();   // save the job ID back
+            }
 
             if (IsAjaxRequest())
             {
@@ -237,6 +252,28 @@ namespace TodoView.Pages.Todos
             {
                 existingTodo.ReminderTriggeredAt = null;
             }
+            if (reminderChanged || normalizedReminderAt is null)
+            {
+                // Cancel the old Hangfire job if one exists
+                if (existingTodo.HangfireJobId is not null)
+                {
+                    BackgroundJob.Delete(existingTodo.HangfireJobId);
+                    existingTodo.HangfireJobId = null;
+                }
+
+                // Schedule a new one only if a reminder time is set
+                if (normalizedReminderAt.HasValue && !existingTodo.IsDone)
+                {
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user?.Email is not null)
+                    {
+                        existingTodo.HangfireJobId = _scheduler.Schedule(
+                            user.Email,
+                            $"Reminder: \"{existingTodo.Title}\"",
+                            new DateTimeOffset(normalizedReminderAt.Value, TimeSpan.Zero));
+                    }
+                }
+            }
 
             await _context.SaveChangesAsync();
 
@@ -324,6 +361,8 @@ namespace TodoView.Pages.Todos
             {
                 return NotFound();
             }
+            if (todo.HangfireJobId is not null)
+                BackgroundJob.Delete(todo.HangfireJobId);
 
             _context.TodoItems.Remove(todo);
             await _context.SaveChangesAsync();

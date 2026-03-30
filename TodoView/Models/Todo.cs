@@ -23,6 +23,8 @@ public class Todo
     public DateTime? ReminderAt { get; set; }
 
     public DateTime? ReminderTriggeredAt { get; set; }
+    
+    public string? HangfireJobId { get; set; }
 
     [Required]
     [ValidateNever]
