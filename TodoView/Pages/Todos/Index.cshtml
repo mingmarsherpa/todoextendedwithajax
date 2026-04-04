@@ -130,7 +130,7 @@
 
                     <div class="mb-3">
                         <label asp-for="Todo.ReminderAt" class="form-label fw-bold"></label>
-                        <input asp-for="Todo.ReminderAt" type="datetime-local" class="form-control" />
+                        <input asp-for="Todo.ReminderAt" type="datetime-local" class="form-control js-reminder-input" />
                         <span asp-validation-for="Todo.ReminderAt" class="text-danger small"></span>
                         <div class="form-text">Leave this empty to skip reminders. The popup appears while this page is open.</div>
                     </div>

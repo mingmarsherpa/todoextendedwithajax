@@ -1,7 +1,7 @@
 @using System.Text.Json
 @model TodoView.Pages.Todos.IndexModel
 
-<section class="panel-card">
+<section class="panel-card@((Model.IsCardView && Model.Todos.Count == 1) ? " panel-card-single-card-view" : string.Empty)">
     @if (Model.HasActiveFilters)
     {
         <div class="todo-results-meta">
@@ -21,7 +21,7 @@
     {
         @if (Model.Todos.Any())
         {
-            <div class="todo-card-grid">
+            <div class="todo-card-grid@(Model.Todos.Count == 1 ? " todo-card-grid-single" : string.Empty)">
                 @foreach (var item in Model.Todos)
                 {
                     <article class="todo-card" id="todo-card-@item.Id">

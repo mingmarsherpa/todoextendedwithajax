@@ -120,6 +120,9 @@ namespace TodoView.Pages.Todos
                 return Challenge();
             }
 
+            Todo.ReminderAt = NormalizeReminderInputToUtc(Todo.ReminderAt);
+            ValidateReminderForCreate(Todo.ReminderAt);
+
             if (!ModelState.IsValid)
             {
                 ConfigureForm(
@@ -145,15 +148,18 @@ namespace TodoView.Pages.Todos
             Todo.ReminderTriggeredAt = null;
             _context.TodoItems.Add(Todo);
             await _context.SaveChangesAsync();
-            if (Todo.ReminderAt.HasValue && user.Email is not null)
+
+            var reminderAt = Todo.ReminderAt;
+            if (ShouldScheduleReminder(reminderAt, Todo.IsDone) && user.Email is not null && reminderAt.HasValue)
             {
                 var jobId = _scheduler.Schedule(
+                    Todo.Id,
                     user.Email,
                     $"Reminder: \"{Todo.Title}\"",
-                    new DateTimeOffset(Todo.ReminderAt.Value, TimeSpan.Zero));
+                    ToReminderInstant(reminderAt.Value));
 
                 Todo.HangfireJobId = jobId;
-                await _context.SaveChangesAsync();   // save the job ID back
+                await _context.SaveChangesAsync();
             }
 
             if (IsAjaxRequest())
@@ -183,7 +189,7 @@ namespace TodoView.Pages.Todos
                 return NotFound();
             }
 
-            Todo = todo;
+            Todo = PrepareTodoForDisplay(todo);
             ConfigureForm(
                 "Edit Task",
                 "Update the task and keep the list in place.",
@@ -222,8 +228,12 @@ namespace TodoView.Pages.Todos
                 return NotFound();
             }
 
+            var normalizedReminderAt = NormalizeReminderInputToUtc(Todo.ReminderAt);
+            ValidateReminderForEdit(existingTodo, normalizedReminderAt, Todo.IsDone);
+
             if (!ModelState.IsValid)
             {
+                Todo.ReminderAt = ConvertReminderToLocal(normalizedReminderAt);
                 ConfigureForm(
                     "Edit Task",
                     "Update the task and keep the list in place.",
@@ -240,8 +250,8 @@ namespace TodoView.Pages.Todos
                 return Page();
             }
 
-            var normalizedReminderAt = Todo.ReminderAt;
             var reminderChanged = existingTodo.ReminderAt != normalizedReminderAt;
+            var wasDone = existingTodo.IsDone;
 
             existingTodo.Title = Todo.Title.Trim();
             existingTodo.Description = Todo.Description?.Trim() ?? string.Empty;
@@ -252,25 +262,25 @@ namespace TodoView.Pages.Todos
             {
                 existingTodo.ReminderTriggeredAt = null;
             }
-            if (reminderChanged || normalizedReminderAt is null)
-            {
-                // Cancel the old Hangfire job if one exists
-                if (existingTodo.HangfireJobId is not null)
-                {
-                    BackgroundJob.Delete(existingTodo.HangfireJobId);
-                    existingTodo.HangfireJobId = null;
-                }
 
-                // Schedule a new one only if a reminder time is set
-                if (normalizedReminderAt.HasValue && !existingTodo.IsDone)
+            if (existingTodo.IsDone)
+            {
+                CancelReminderJob(existingTodo);
+            }
+            else if (reminderChanged || normalizedReminderAt is null || wasDone)
+            {
+                CancelReminderJob(existingTodo);
+
+                if (ShouldScheduleReminder(normalizedReminderAt, existingTodo.IsDone) && normalizedReminderAt.HasValue)
                 {
                     var user = await _userManager.GetUserAsync(User);
                     if (user?.Email is not null)
                     {
                         existingTodo.HangfireJobId = _scheduler.Schedule(
+                            existingTodo.Id,
                             user.Email,
                             $"Reminder: \"{existingTodo.Title}\"",
-                            new DateTimeOffset(normalizedReminderAt.Value, TimeSpan.Zero));
+                            ToReminderInstant(normalizedReminderAt.Value));
                     }
                 }
             }
@@ -304,7 +314,7 @@ namespace TodoView.Pages.Todos
                 return NotFound();
             }
 
-            Todo = todo;
+            Todo = PrepareTodoForDisplay(todo);
             return Partial("_TodoDetailsModal", this);
         }
 
@@ -337,6 +347,7 @@ namespace TodoView.Pages.Todos
                 return new JsonResult(new { success = false });
             }
 
+            CancelReminderJob(todo);
             todo.ReminderTriggeredAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
@@ -361,8 +372,8 @@ namespace TodoView.Pages.Todos
             {
                 return NotFound();
             }
-            if (todo.HangfireJobId is not null)
-                BackgroundJob.Delete(todo.HangfireJobId);
+
+            CancelReminderJob(todo);
 
             _context.TodoItems.Remove(todo);
             await _context.SaveChangesAsync();
@@ -411,7 +422,7 @@ namespace TodoView.Pages.Todos
                 {
                     Id = t.Id,
                     Title = t.Title,
-                    ReminderAt = t.ReminderAt!.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+                    ReminderAt = FormatReminderForClient(t.ReminderAt!.Value)
                 })
                 .ToList();
 
@@ -433,6 +444,11 @@ namespace TodoView.Pages.Todos
                 .OrderBy(t => t.IsDone)
                 .ThenBy(t => t.Title)
                 .ToListAsync();
+
+            foreach (var todo in Todos)
+            {
+                PrepareTodoForDisplay(todo);
+            }
         }
 
         private async Task<Todo?> FindOwnedTodoAsync(int? id)
@@ -505,5 +521,94 @@ namespace TodoView.Pages.Todos
 
             SearchTerm = SearchTerm?.Trim() ?? string.Empty;
         }
+
+        private static Todo PrepareTodoForDisplay(Todo todo)
+        {
+            todo.ReminderAt = ConvertReminderToLocal(todo.ReminderAt);
+            todo.ReminderTriggeredAt = ConvertReminderToLocal(todo.ReminderTriggeredAt);
+            return todo;
+        }
+
+        private void ValidateReminderForCreate(DateTime? normalizedReminderAt)
+        {
+            if (normalizedReminderAt.HasValue && !Todo.IsDone && normalizedReminderAt.Value < DateTime.UtcNow)
+            {
+                ModelState.AddModelError("Todo.ReminderAt", "Reminder date cannot be in the past.");
+            }
+        }
+
+        private void ValidateReminderForEdit(Todo existingTodo, DateTime? normalizedReminderAt, bool isDone)
+        {
+            if (!normalizedReminderAt.HasValue || isDone)
+            {
+                return;
+            }
+
+            var reminderChanged = existingTodo.ReminderAt != normalizedReminderAt;
+            if (reminderChanged && normalizedReminderAt.Value < DateTime.UtcNow)
+            {
+                ModelState.AddModelError("Todo.ReminderAt", "Reminder date cannot be in the past.");
+            }
+        }
+
+        private static bool ShouldScheduleReminder(DateTime? normalizedReminderAt, bool isDone)
+        {
+            return normalizedReminderAt.HasValue
+                && !isDone
+                && normalizedReminderAt.Value >= DateTime.UtcNow;
+        }
+
+        private static void CancelReminderJob(Todo todo)
+        {
+            if (string.IsNullOrWhiteSpace(todo.HangfireJobId))
+            {
+                todo.HangfireJobId = null;
+                return;
+            }
+
+            BackgroundJob.Delete(todo.HangfireJobId);
+            todo.HangfireJobId = null;
+        }
+
+        private static DateTime? NormalizeReminderInputToUtc(DateTime? reminderAt)
+        {
+            if (!reminderAt.HasValue)
+            {
+                return null;
+            }
+
+            var value = reminderAt.Value;
+
+            return value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Local => value.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Local).ToUniversalTime()
+            };
+        }
+
+        private static DateTime? ConvertReminderToLocal(DateTime? reminderAt)
+        {
+            if (!reminderAt.HasValue)
+            {
+                return null;
+            }
+
+            return EnsureReminderUtc(reminderAt.Value).ToLocalTime();
+        }
+
+        private static string FormatReminderForClient(DateTime reminderAt) =>
+            EnsureReminderUtc(reminderAt).ToString("O");
+
+        private static DateTimeOffset ToReminderInstant(DateTime reminderAt) =>
+            new(EnsureReminderUtc(reminderAt));
+
+        private static DateTime EnsureReminderUtc(DateTime reminderAt) =>
+            reminderAt.Kind switch
+            {
+                DateTimeKind.Utc => reminderAt,
+                DateTimeKind.Local => reminderAt.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(reminderAt, DateTimeKind.Utc)
+            };
     }
 }

@@ -1,8 +1,8 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
-using Hangfire.SqlServer;
+using Hangfire.PostgreSql;
+using Npgsql;
 using TodoView.Services;
 using TodoView.Authorization;
 using TodoView.Data;
@@ -11,9 +11,11 @@ using TodoView.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
 builder.Services.AddDbContext<TodoDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
@@ -36,10 +38,11 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<ReminderScheduler>();
+builder.Services.AddTransient<ReminderDispatchService>();
 
 builder.Services.AddHangfire(config =>
-    config.UseSqlServerStorage(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    config.UsePostgreSqlStorage(options =>
+        options.UseNpgsqlConnection(connectionString)));
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
@@ -84,7 +87,7 @@ static async Task InitializeDatabaseAsync(WebApplication app)
             await IdentitySeeder.SeedAsync(services);
             return;
         }
-        catch (SqlException ex) when (attempt < maxAttempts)
+        catch (NpgsqlException ex) when (attempt < maxAttempts)
         {
             app.Logger.LogWarning(
                 ex,

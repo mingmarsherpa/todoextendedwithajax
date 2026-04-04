@@ -7,13 +7,23 @@
 
     const scheduledTimers = new Map();
     const activeRequests = new Set();
+    let refreshInFlight = false;
+    let pollTimerId = null;
     let deliveredReminderKeys = new Set();
+    const pollIntervalMs = 15000;
 
     const buildReminderKey = (reminder) => `${reminder.id}:${reminder.reminderAt}`;
 
     const clearScheduledTimers = () => {
         scheduledTimers.forEach((timerId) => window.clearTimeout(timerId));
         scheduledTimers.clear();
+    };
+
+    const stopPolling = () => {
+        if (pollTimerId !== null) {
+            window.clearInterval(pollTimerId);
+            pollTimerId = null;
+        }
     };
 
     const getRequestToken = () => document.querySelector("input[name='__RequestVerificationToken']")?.value || "";
@@ -53,6 +63,51 @@
         document.dispatchEvent(new CustomEvent("pop:show", { detail: config }));
     };
 
+    const refreshList = async () => {
+        const refreshUrl = container.dataset.refreshUrl;
+
+        if (!refreshUrl || refreshInFlight) {
+            return;
+        }
+
+        refreshInFlight = true;
+
+        try {
+            const response = await fetch(refreshUrl, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to refresh reminders: ${response.status}`);
+            }
+
+            container.innerHTML = await response.text();
+            document.dispatchEvent(new CustomEvent("ajax:content-refreshed", {
+                detail: { target: container, url: refreshUrl }
+            }));
+        } catch (error) {
+            console.error(error);
+        } finally {
+            refreshInFlight = false;
+        }
+    };
+
+    const startPolling = () => {
+        if (pollTimerId !== null) {
+            return;
+        }
+
+        pollTimerId = window.setInterval(() => {
+            if (document.hidden || activeRequests.size > 0) {
+                return;
+            }
+
+            void refreshList();
+        }, pollIntervalMs);
+    };
+
     const triggerReminder = async (reminder, triggerUrl) => {
         const reminderKey = buildReminderKey(reminder);
 
@@ -86,11 +141,13 @@
 
             const result = await response.json();
             if (!result.success) {
+                await refreshList();
                 return;
             }
 
             deliveredReminderKeys.add(reminderKey);
             showReminderPopup(result.notification, reminder.title);
+            await refreshList();
         } catch (error) {
             console.error(error);
         } finally {
@@ -129,6 +186,13 @@
         clearScheduledTimers();
 
         const { triggerUrl, reminders } = readReminderState();
+
+        if (reminders.length > 0) {
+            startPolling();
+        } else {
+            stopPolling();
+        }
+
         reminders.forEach((reminder) => scheduleReminder(reminder, triggerUrl));
     };
 
@@ -144,7 +208,11 @@
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
             syncReminders();
+            void refreshList();
+            return;
         }
+
+        stopPolling();
     });
 
     syncReminders();

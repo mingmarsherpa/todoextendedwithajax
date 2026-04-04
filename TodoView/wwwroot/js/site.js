@@ -103,6 +103,22 @@
         $.validator.unobtrusive.parse(form);
     };
 
+    const formatLocalDateTimeMin = (value) => {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, "0");
+        const day = String(value.getDate()).padStart(2, "0");
+        const hours = String(value.getHours()).padStart(2, "0");
+        const minutes = String(value.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    const applyReminderMinimum = (root = document) => {
+        const minValue = formatLocalDateTimeMin(new Date());
+        root.querySelectorAll(".js-reminder-input[type='datetime-local']").forEach((input) => {
+            input.setAttribute("min", minValue);
+        });
+    };
+
     const refreshList = async (target, url) => {
         const response = await fetch(url, {
             headers: {
@@ -133,6 +149,7 @@
 
         modalContent.innerHTML = await response.text();
         parseValidation(modalContent.querySelector("form"));
+        applyReminderMinimum(modalContent);
         modal.show();
 
         if (trigger?.dataset.popMessage) {
@@ -222,6 +239,7 @@
 
             modalContent.innerHTML = await response.text();
             parseValidation(modalContent.querySelector("form"));
+            applyReminderMinimum(modalContent);
         } catch (error) {
             console.error(error);
             renderRequestError("The request could not be completed. Check the server response and try again.");
@@ -231,4 +249,6 @@
     modalElement.addEventListener("hidden.bs.modal", () => {
         modalContent.innerHTML = "";
     });
+
+    applyReminderMinimum();
 })();

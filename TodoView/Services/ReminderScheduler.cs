@@ -8,11 +8,11 @@ public class ReminderScheduler
 
     public ReminderScheduler(IBackgroundJobClient jobs) => _jobs = jobs;
 
-    public string Schedule(string email, string message, DateTimeOffset sendAt)
+    public string Schedule(int todoId, string email, string message, DateTimeOffset sendAt)
     {
         var delay = sendAt - DateTimeOffset.UtcNow;
-        return _jobs.Schedule<IEmailService>(
-            svc => svc.SendReminderAsync(email, message, CancellationToken.None),
+        return _jobs.Schedule<ReminderDispatchService>(
+            svc => svc.SendReminderAsync(todoId, email, message, CancellationToken.None),
             delay > TimeSpan.Zero ? delay : TimeSpan.Zero
         );
     }

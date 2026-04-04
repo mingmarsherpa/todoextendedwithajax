@@ -765,6 +765,11 @@ a:focus {
   box-shadow: var(--shadow-lg);
 }
 
+.panel-card-single-card-view {
+  width: min(100%, 468px);
+  justify-self: start;
+}
+
 .page-stack {
   display: grid;
   gap: 1.5rem;
@@ -924,6 +929,11 @@ a:focus {
   align-items: stretch;
 }
 
+.todo-card-grid-single {
+  grid-template-columns: minmax(280px, 420px);
+  justify-content: start;
+}
+
 .todo-card {
   display: grid;
   gap: 1rem;
@@ -934,6 +944,10 @@ a:focus {
     linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(248, 240, 228, 0.84));
   border: 1px solid rgba(255, 255, 255, 0.72);
   box-shadow: var(--shadow-md);
+}
+
+.todo-card-grid-single .todo-card {
+  min-height: auto;
 }
 
 .todo-card-header {

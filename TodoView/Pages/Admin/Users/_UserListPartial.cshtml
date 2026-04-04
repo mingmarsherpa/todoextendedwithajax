@@ -47,7 +47,7 @@
                         <div class="btn-group btn-group-sm">
                             <button type="button"
                                     class="btn btn-outline-secondary js-ajax-modal-trigger"
-                                    data-url="@Url.Page("./Details", new { id = user.Id })"
+                                    data-url="@Url.Page("./Index", "DetailsModal", new { id = user.Id })"
                                     data-pop-title="User details"
                                     data-pop-message="Opened the profile for @displayName"
                                     data-pop-tone="info">
@@ -55,12 +55,12 @@
                             </button>
                             <button type="button"
                                     class="btn btn-outline-primary js-ajax-modal-trigger"
-                                    data-url="@Url.Page("./Edit", new { id = user.Id })">
+                                    data-url="@Url.Page("./Index", "EditModal", new { id = user.Id })">
                                 Edit
                             </button>
                             <button type="button"
                                     class="btn btn-outline-danger js-ajax-modal-trigger"
-                                    data-url="@Url.Page("./Delete", new { id = user.Id })">
+                                    data-url="@Url.Page("./Index", "DeleteModal", new { id = user.Id })">
                                 Delete
                             </button>
                         </div>

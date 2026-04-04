@@ -1,0 +1,24 @@
+# Root-level IDE/user files
+.idea/
+.vscode/
+*.code-workspace
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Root-level working notes and handoff docs
+/docs/
+/plan/
+/README.md
+/POSTGRES_MIGRATION_README.md
+/REMINDER_EMAIL_ISSUE.md
+
+# Logs and temp output
+/logs/
+*.log

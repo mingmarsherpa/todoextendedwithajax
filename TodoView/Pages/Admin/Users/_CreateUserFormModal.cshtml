@@ -1,4 +1,4 @@
-@model TodoView.Pages.Admin.Users.CreateModel
+@model TodoView.Pages.Admin.Users.IndexModel
 
 <div class="modal-header border-0 pb-0">
     <div>
@@ -22,50 +22,50 @@
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label asp-for="Input.FirstName" class="form-label"></label>
-                <input asp-for="Input.FirstName" class="form-control" />
-                <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
+                <label asp-for="CreateInput.FirstName" class="form-label"></label>
+                <input asp-for="CreateInput.FirstName" class="form-control" />
+                <span asp-validation-for="CreateInput.FirstName" class="text-danger small"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label asp-for="Input.LastName" class="form-label"></label>
-                <input asp-for="Input.LastName" class="form-control" />
-                <span asp-validation-for="Input.LastName" class="text-danger small"></span>
+                <label asp-for="CreateInput.LastName" class="form-label"></label>
+                <input asp-for="CreateInput.LastName" class="form-control" />
+                <span asp-validation-for="CreateInput.LastName" class="text-danger small"></span>
             </div>
         </div>
 
         <div class="mb-3">
-            <label asp-for="Input.Email" class="form-label"></label>
-            <input asp-for="Input.Email" class="form-control" />
-            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            <label asp-for="CreateInput.Email" class="form-label"></label>
+            <input asp-for="CreateInput.Email" class="form-control" />
+            <span asp-validation-for="CreateInput.Email" class="text-danger small"></span>
         </div>
 
         <div class="mb-3">
-            <label asp-for="Input.Address" class="form-label"></label>
-            <input asp-for="Input.Address" class="form-control" />
-            <span asp-validation-for="Input.Address" class="text-danger small"></span>
+            <label asp-for="CreateInput.Address" class="form-label"></label>
+            <input asp-for="CreateInput.Address" class="form-control" />
+            <span asp-validation-for="CreateInput.Address" class="text-danger small"></span>
         </div>
 
         <div class="mb-3">
-            <label asp-for="Input.Role" class="form-label"></label>
-            <select asp-for="Input.Role" class="form-select">
+            <label asp-for="CreateInput.Role" class="form-label"></label>
+            <select asp-for="CreateInput.Role" class="form-select">
                 @foreach (var role in Model.AvailableRoles)
                 {
                     <option value="@role">@role</option>
                 }
             </select>
-            <span asp-validation-for="Input.Role" class="text-danger small"></span>
+            <span asp-validation-for="CreateInput.Role" class="text-danger small"></span>
         </div>
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label asp-for="Input.Password" class="form-label"></label>
-                <input asp-for="Input.Password" class="form-control" />
-                <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                <label asp-for="CreateInput.Password" class="form-label"></label>
+                <input asp-for="CreateInput.Password" class="form-control" />
+                <span asp-validation-for="CreateInput.Password" class="text-danger small"></span>
             </div>
             <div class="col-md-6 mb-3">
-                <label asp-for="Input.ConfirmPassword" class="form-label"></label>
-                <input asp-for="Input.ConfirmPassword" class="form-control" />
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                <label asp-for="CreateInput.ConfirmPassword" class="form-label"></label>
+                <input asp-for="CreateInput.ConfirmPassword" class="form-control" />
+                <span asp-validation-for="CreateInput.ConfirmPassword" class="text-danger small"></span>
             </div>
         </div>
 

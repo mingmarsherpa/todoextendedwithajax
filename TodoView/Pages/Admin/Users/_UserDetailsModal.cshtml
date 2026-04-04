@@ -1,4 +1,4 @@
-@model TodoView.Pages.Admin.Users.DetailsModel
+@model TodoView.Pages.Admin.Users.IndexModel
 @{
     var initials = string.Concat(
         string.IsNullOrWhiteSpace(Model.UserDetails.FirstName) ? "" : Model.UserDetails.FirstName[0],
@@ -50,7 +50,7 @@
 <div class="modal-footer border-0 pt-0">
     <button type="button"
             class="btn btn-outline-primary js-ajax-modal-trigger"
-            data-url="@Url.Page("./Edit", new { id = Model.UserDetails.Id })">
+            data-url="@Url.Page("./Index", "EditModal", new { id = Model.UserDetails.Id })">
         Edit
     </button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
