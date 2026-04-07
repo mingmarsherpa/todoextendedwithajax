@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
+using Resend;
 using Hangfire.PostgreSql;
 using Npgsql;
 using TodoView.Services;
@@ -34,8 +35,18 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeFolder("/Admin/Users", AppRoles.Admin);
 });
 
+// ADD
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddOptions();
+builder.Services.AddHttpClient<ResendClient>();
+builder.Services.Configure<ResendClientOptions>(o =>
+{
+    o.ApiToken = builder.Configuration["EmailSettings:ApiKey"]!;
+});
+builder.Services.AddTransient<IResend, ResendClient>();
+
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<ReminderScheduler>();
 builder.Services.AddTransient<ReminderDispatchService>();

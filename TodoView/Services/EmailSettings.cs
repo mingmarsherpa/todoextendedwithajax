@@ -2,11 +2,11 @@ namespace TodoView.Services;
 
 public class EmailSettings
 {
-    public string SmtpHost { get; set; } = string.Empty;
-    public int SmtpPort { get; set; }
+    // Your Resend API key — set via env var or appsettings
+    public string ApiKey { get; set; } = string.Empty;
+
+    // Must be a verified sender address in your Resend account
     public string FromAddress { get; set; } = string.Empty;
+
     public string FromName { get; set; } = string.Empty;
-    public bool UseAuthentication { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
 }

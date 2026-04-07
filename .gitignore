@@ -1,5 +1,6 @@
-# Root-level IDE/user files
+# IDE and user-specific files
 .idea/
+.vs/
 .vscode/
 *.code-workspace
 *.user
@@ -12,13 +13,22 @@
 .DS_Store
 Thumbs.db
 
-# Root-level working notes and handoff docs
-/docs/
-/plan/
-/README.md
-/POSTGRES_MIGRATION_README.md
-/REMINDER_EMAIL_ISSUE.md
+# Build and publish output
+**/bin/
+**/obj/
+**/publish/
+**/wwwroot/dist/
 
-# Logs and temp output
-/logs/
+# Local app configuration and secrets
+TodoView/appsettings.json
+TodoView/appsettings.Development.json
+TodoView/secrets.json
+TodoView/Properties/launchSettings.json
+
+# Local notes and generated scaffolding leftovers
+CLAUDE_PROMPT_README.md
+TodoView/ScaffoldingReadMe.txt
+docs/
+plan/
+logs/
 *.log
