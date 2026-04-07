@@ -59,8 +59,21 @@ builder.Services.AddTransient<ReminderDispatchService>();
 
 // 6. Hangfire Background Jobs
 builder.Services.AddHangfire(config =>
-    config.UsePostgreSqlStorage(options =>
-        options.UseNpgsqlConnection(connectionString)));
+    config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UsePostgreSqlStorage(options => 
+        {
+            // This uses your main connection string
+            options.UseNpgsqlConnection(connectionString);
+        }, new PostgreSqlStorageOptions 
+        {
+            // If your tables are in a schema other than 'public', change this name:
+            SchemaName = "public", 
+            PrepareSchemaIfNecessary = true, // Attempt to create tables if missing
+            QueuePollInterval = TimeSpan.FromSeconds(15)
+        }));
+
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
