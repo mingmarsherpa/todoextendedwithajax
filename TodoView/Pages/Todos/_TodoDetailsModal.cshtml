@@ -52,8 +52,7 @@
             <p class="value fw-normal">
                 @if (Model.Todo.ReminderAt.HasValue)
                 {
-                    @Model.Todo.ReminderAt.Value.ToString("MMM d, yyyy h:mm tt")
-
+                    <span class="local-time" data-utc="@Model.Todo.ReminderAt?.ToString("O")"></span>
                     @if (Model.Todo.ReminderTriggeredAt.HasValue)
                     {
                         <span class="d-block text-muted small">Reminder already sent.</span>
@@ -76,3 +75,4 @@
     </a>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
+

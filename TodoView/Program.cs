@@ -102,6 +102,7 @@ app.UseHangfireDashboard("/hangfire");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/", () => Results.Redirect("/Todos"));
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 

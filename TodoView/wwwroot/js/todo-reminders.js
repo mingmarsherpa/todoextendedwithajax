@@ -84,6 +84,7 @@
             }
 
             container.innerHTML = await response.text();
+            if (typeof renderLocalTimes === "function") renderLocalTimes();
             document.dispatchEvent(new CustomEvent("ajax:content-refreshed", {
                 detail: { target: container, url: refreshUrl }
             }));

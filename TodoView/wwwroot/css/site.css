@@ -1020,6 +1020,14 @@ a:focus {
   font-size: 0.96rem;
 }
 
+.todo-table-title {
+  display: block;
+}
+
+.todo-table-id {
+  display: none;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -1185,6 +1193,15 @@ a:focus {
     align-items: flex-start;
   }
 
+  .page-hero .d-flex {
+    align-items: stretch !important;
+  }
+
+  .page-hero .d-flex > :first-child {
+    width: 100%;
+    text-align: center;
+  }
+
   .todo-hero-actions {
     width: 100%;
     justify-content: flex-start;
@@ -1215,6 +1232,122 @@ a:focus {
   .view-toggle-option {
     flex: 1 1 0;
     justify-content: center;
+  }
+
+  .todo-summary-strip {
+    justify-content: center;
+  }
+
+  .summary-pill {
+    flex: 1 1 150px;
+    justify-content: center;
+  }
+
+  .todo-results-meta {
+    text-align: center;
+  }
+
+  .panel-card-single-card-view {
+    justify-self: center;
+    width: min(100%, 468px);
+  }
+
+  .todo-card-grid-single {
+    justify-content: center;
+  }
+
+  .todo-card-header {
+    flex-direction: column;
+  }
+
+  .todo-card-header .status-pill {
+    align-self: flex-start;
+  }
+
+  .todo-card-actions .btn {
+    flex-basis: 100%;
+  }
+
+  .todo-table-responsive {
+    overflow: visible;
+  }
+
+  .todo-table thead {
+    display: none;
+  }
+
+  .todo-table,
+  .todo-table tbody,
+  .todo-table tr,
+  .todo-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .todo-table tbody {
+    display: grid;
+    gap: 0.95rem;
+  }
+
+  .todo-table > tbody > tr {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(248, 240, 228, 0.84));
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow: var(--shadow-md);
+  }
+
+  .todo-table > :not(caption) > * > * {
+    border-bottom: 1px solid rgba(68, 49, 34, 0.08);
+    padding: 0.95rem 1rem;
+  }
+
+  .todo-table > tbody > tr > td:last-child {
+    border-bottom: 0;
+  }
+
+  .todo-table td {
+    display: grid;
+    gap: 0.35rem;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    text-align: left !important;
+  }
+
+  .todo-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .todo-table td[data-label="Title"] {
+    gap: 0.2rem;
+  }
+
+  .todo-table-id {
+    display: inline-block;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .todo-table td[data-label="Actions"] .btn-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .todo-table td[data-label="Actions"] .btn {
+    width: 100%;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .todo-table-empty::before {
+    content: none;
   }
 
   .table-responsive {

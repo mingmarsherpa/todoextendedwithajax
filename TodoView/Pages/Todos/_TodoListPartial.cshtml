@@ -51,7 +51,7 @@
                         <div class="text-muted small mb-3">
                             @if (item.ReminderAt.HasValue)
                             {
-                                <span><i class="bi bi-bell me-1"></i>Reminder @item.ReminderAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                                <span><i class="bi bi-bell me-1"></i>Reminder <span class="local-time" data-utc="@item.ReminderAt?.ToString("O")"></span></span>
                                 @if (item.ReminderTriggeredAt.HasValue)
                                 {
                                     <span class="ms-2">(sent)</span>
@@ -97,8 +97,8 @@
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+        <div class="table-responsive todo-table-responsive">
+            <table class="table table-hover align-middle mb-0 todo-table">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4">Title</th>
@@ -113,13 +113,18 @@
                     {
                         @foreach (var item in Model.Todos)
                         {
-                            <tr id="todo-row-@item.Id">
-                                <td class="ps-4 fw-bold">@item.Title</td>
-                                <td class="text-muted">@item.Description</td>
-                                <td class="text-muted small">
+                            <tr id="todo-row-@item.Id" class="todo-table-row">
+                                <td class="ps-4 fw-bold" data-label="Title">
+                                    <span class="todo-table-title">@item.Title</span>
+                                    <span class="todo-table-id">Task #@item.Id</span>
+                                </td>
+                                <td class="text-muted" data-label="Description">
+                                    @(string.IsNullOrWhiteSpace(item.Description) ? "No description provided for this task yet." : item.Description)
+                                </td>
+                                <td class="text-muted small" data-label="Reminder">
                                     @if (item.ReminderAt.HasValue)
                                     {
-                                        <span><i class="bi bi-bell me-1"></i>@item.ReminderAt.Value.ToString("MMM d, yyyy h:mm tt")</span>
+                                        <span><i class="bi bi-bell me-1"></i><span class="local-time" data-utc="@item.ReminderAt?.ToString("O")"></span></span>
                                         @if (item.ReminderTriggeredAt.HasValue)
                                         {
                                             <span class="d-block">(sent)</span>
@@ -130,7 +135,7 @@
                                         <span><i class="bi bi-bell-slash me-1"></i>None</span>
                                     }
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" data-label="Status">
                                     @if (item.IsDone)
                                     {
                                         <span class="status-pill status-pill-done">
@@ -144,7 +149,7 @@
                                         </span>
                                     }
                                 </td>
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4" data-label="Actions">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a class="btn btn-outline-primary js-ajax-modal-trigger"
                                            href="@Url.Page("./Index", "EditModal", new { id = item.Id, view = Model.ViewMode, status = Model.StatusFilter, q = Model.SearchTerm })"
@@ -172,7 +177,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="5" class="p-0">
+                            <td colspan="5" class="p-0 todo-table-empty">
                                 <div class="empty-state">
                                     <span class="empty-state-icon"><i class="bi bi-journal-check"></i></span>
                                     <p class="mb-0">No tasks match the current filters. Adjust the search or create a new task.</p>

@@ -162,7 +162,45 @@
         <div class="modal-content" id="ajaxCrudModalContent"></div>
     </div>
 </div>
+<script>
+  // Renders all UTC data-utc spans into user's local time — call after any DOM update
+  function renderLocalTimes(root) {
+    (root || document).querySelectorAll('.local-time[data-utc]').forEach(function(el) {
+      var utc = el.dataset.utc;
+      if (utc) {
+        el.textContent = new Date(utc).toLocaleString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
+      }
+    });
+  }
+  renderLocalTimes(); // run on initial page load
 
+  // Inline form: two-field UTC handling
+  (function () {
+    var utcInput = document.getElementById('ReminderAtUtc');
+    var localInput = document.getElementById('ReminderAtLocal');
+    if (!utcInput || !localInput) return;
+
+    // If editing, populate the local picker from the existing UTC value
+    if (utcInput.value) {
+      var d = new Date(utcInput.value);
+      var pad = function(n) { return String(n).padStart(2, '0'); };
+      localInput.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+        + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    // On submit, convert the local picker value to UTC ISO string
+    document.getElementById('inline-todo-form').addEventListener('submit', function () {
+      if (localInput.value) {
+        utcInput.value = new Date(localInput.value).toISOString();
+      } else {
+        utcInput.value = '';
+      }
+    });
+  })();
+</script>
 @Html.AntiForgeryToken()
 
 @section Scripts {

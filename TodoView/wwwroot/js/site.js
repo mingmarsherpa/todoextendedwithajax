@@ -119,6 +119,23 @@
         });
     };
 
+    function initModalReminderPicker(modalRoot) {
+        const utcInput = modalRoot.querySelector("#ReminderAtUtc");
+        const localInput = modalRoot.querySelector("#ReminderAtLocal");
+
+        if (!utcInput || !localInput) {
+            return;
+        }
+
+        if (utcInput.value) {
+            const value = new Date(utcInput.value);
+
+            if (!Number.isNaN(value.getTime())) {
+                localInput.value = formatLocalDateTimeMin(value);
+            }
+        }
+    }
+
     const refreshList = async (target, url) => {
         const response = await fetch(url, {
             headers: {
@@ -131,6 +148,7 @@
         }
 
         target.innerHTML = await response.text();
+        if (typeof renderLocalTimes === "function") renderLocalTimes();
         document.dispatchEvent(new CustomEvent("ajax:content-refreshed", {
             detail: { target, url }
         }));
@@ -148,7 +166,9 @@
         }
 
         modalContent.innerHTML = await response.text();
+        if (typeof renderLocalTimes === "function") renderLocalTimes();
         parseValidation(modalContent.querySelector("form"));
+        initModalReminderPicker(modalContent);
         applyReminderMinimum(modalContent);
         modal.show();
 
@@ -195,6 +215,13 @@
         event.preventDefault();
         form.noValidate = true;
 
+        // Sync UTC reminder value before FormData is built
+        var utcInput = form.querySelector('#ReminderAtUtc');
+        var localInput = form.querySelector('#ReminderAtLocal');
+        if (utcInput && localInput) {
+            utcInput.value = localInput.value ? new Date(localInput.value).toISOString() : '';
+        }
+
         const token = form.querySelector("input[name='__RequestVerificationToken']")?.value
             || document.querySelector("input[name='__RequestVerificationToken']")?.value;
         const formData = new FormData(form);
@@ -238,7 +265,9 @@
             }
 
             modalContent.innerHTML = await response.text();
+            if (typeof renderLocalTimes === "function") renderLocalTimes();
             parseValidation(modalContent.querySelector("form"));
+            initModalReminderPicker(modalContent);
             applyReminderMinimum(modalContent);
         } catch (error) {
             console.error(error);

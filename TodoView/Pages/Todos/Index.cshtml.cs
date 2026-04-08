@@ -233,7 +233,6 @@ namespace TodoView.Pages.Todos
 
             if (!ModelState.IsValid)
             {
-                Todo.ReminderAt = ConvertReminderToLocal(normalizedReminderAt);
                 ConfigureForm(
                     "Edit Task",
                     "Update the task and keep the list in place.",
@@ -524,8 +523,6 @@ namespace TodoView.Pages.Todos
 
         private static Todo PrepareTodoForDisplay(Todo todo)
         {
-            todo.ReminderAt = ConvertReminderToLocal(todo.ReminderAt);
-            todo.ReminderTriggeredAt = ConvertReminderToLocal(todo.ReminderTriggeredAt);
             return todo;
         }
 
@@ -583,7 +580,7 @@ namespace TodoView.Pages.Todos
             {
                 DateTimeKind.Utc => value,
                 DateTimeKind.Local => value.ToUniversalTime(),
-                _ => DateTime.SpecifyKind(value, DateTimeKind.Local).ToUniversalTime()
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
             };
         }
 
