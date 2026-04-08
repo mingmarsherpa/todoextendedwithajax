@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Hangfire;
 using Resend;
 using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 using TodoView.Services;
 using TodoView.Authorization;
@@ -88,6 +89,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 // CRITICAL: Only use HttpsRedirection locally. Render handles SSL for you.
 if (app.Environment.IsDevelopment())
 {
