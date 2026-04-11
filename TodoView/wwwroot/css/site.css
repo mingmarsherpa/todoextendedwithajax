@@ -1269,16 +1269,113 @@ a:focus {
   }
 
   .todo-table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .todo-table {
-    min-width: 720px;
+    min-width: 0;
   }
 
   .table-responsive,
   .todo-table-responsive {
     border-radius: var(--radius-lg);
+  }
+
+  .todo-table,
+  .todo-table thead,
+  .todo-table tbody,
+  .todo-table tr,
+  .todo-table th,
+  .todo-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .todo-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .todo-table tbody {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .todo-table > tbody > tr.todo-table-row {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 252, 247, 0.9);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .todo-table > tbody > tr.todo-table-row > td {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border: 0;
+    border-bottom: 1px solid rgba(68, 49, 34, 0.08);
+    text-align: left !important;
+  }
+
+  .todo-table > tbody > tr.todo-table-row > td:last-child {
+    border-bottom: 0;
+  }
+
+  .todo-table > tbody > tr.todo-table-row > td[data-label] {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 6.5rem) minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: start;
+    min-width: 0;
+  }
+
+  .todo-table > tbody > tr.todo-table-row > td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .todo-table-title,
+  .todo-table > tbody > tr.todo-table-row > td[data-label] > *:not(.btn-group) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .todo-table-id {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .todo-table .status-pill {
+    justify-self: start;
+  }
+
+  .todo-table .btn-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    width: 100%;
+  }
+
+  .todo-table .btn-group > .btn {
+    width: 100%;
+    border-radius: 0.95rem !important;
+  }
+
+  .todo-table-empty {
+    display: block;
   }
 }
