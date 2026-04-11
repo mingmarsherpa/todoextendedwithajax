@@ -1269,88 +1269,16 @@ a:focus {
   }
 
   .todo-table-responsive {
-    overflow: visible;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .todo-table thead {
-    display: none;
+  .todo-table {
+    min-width: 720px;
   }
 
-  .todo-table,
-  .todo-table tbody,
-  .todo-table tr,
-  .todo-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .todo-table tbody {
-    display: grid;
-    gap: 0.95rem;
-  }
-
-  .todo-table > tbody > tr {
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(248, 240, 228, 0.84));
-    border: 1px solid rgba(255, 255, 255, 0.72);
-    box-shadow: var(--shadow-md);
-  }
-
-  .todo-table > :not(caption) > * > * {
-    border-bottom: 1px solid rgba(68, 49, 34, 0.08);
-    padding: 0.95rem 1rem;
-  }
-
-  .todo-table > tbody > tr > td:last-child {
-    border-bottom: 0;
-  }
-
-  .todo-table td {
-    display: grid;
-    gap: 0.35rem;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-    text-align: left !important;
-  }
-
-  .todo-table td::before {
-    content: attr(data-label);
-    color: var(--muted);
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .todo-table td[data-label="Title"] {
-    gap: 0.2rem;
-  }
-
-  .todo-table-id {
-    display: inline-block;
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-  }
-
-  .todo-table td[data-label="Actions"] .btn-group {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
-    width: 100%;
-  }
-
-  .todo-table td[data-label="Actions"] .btn {
-    width: 100%;
-    border-radius: var(--radius-md) !important;
-  }
-
-  .todo-table-empty::before {
-    content: none;
-  }
-
-  .table-responsive {
+  .table-responsive,
+  .todo-table-responsive {
     border-radius: var(--radius-lg);
   }
 }

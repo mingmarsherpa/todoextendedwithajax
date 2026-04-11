@@ -346,10 +346,6 @@ namespace TodoView.Pages.Todos
                 return new JsonResult(new { success = false });
             }
 
-            CancelReminderJob(todo);
-            todo.ReminderTriggeredAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
             return new JsonResult(new
             {
                 success = true,

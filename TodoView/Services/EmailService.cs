@@ -18,6 +18,14 @@ public class EmailService : IEmailService
 
     public async Task SendReminderAsync(string toEmail, string message, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey) ||
+            string.IsNullOrWhiteSpace(_settings.FromAddress) ||
+            string.IsNullOrWhiteSpace(_settings.FromName))
+        {
+            throw new InvalidOperationException(
+                "Email settings are incomplete. Configure Email:ApiKey, Email:FromAddress, and Email:FromName.");
+        }
+
         var email = new EmailMessage();
         email.From = $"{_settings.FromName} <{_settings.FromAddress}>";
         email.To.Add(toEmail);

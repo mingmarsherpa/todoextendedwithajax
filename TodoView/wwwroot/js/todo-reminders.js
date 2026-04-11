@@ -9,10 +9,33 @@
     const activeRequests = new Set();
     let refreshInFlight = false;
     let pollTimerId = null;
-    let deliveredReminderKeys = new Set();
+    const deliveredReminderStorageKey = "todo-delivered-reminders";
+    let deliveredReminderKeys = loadDeliveredReminderKeys();
     const pollIntervalMs = 15000;
 
     const buildReminderKey = (reminder) => `${reminder.id}:${reminder.reminderAt}`;
+
+    function loadDeliveredReminderKeys() {
+        try {
+            const stored = window.sessionStorage.getItem(deliveredReminderStorageKey);
+            const values = stored ? JSON.parse(stored) : [];
+            return new Set(Array.isArray(values) ? values : []);
+        } catch (error) {
+            console.error(error);
+            return new Set();
+        }
+    }
+
+    const persistDeliveredReminderKeys = () => {
+        try {
+            window.sessionStorage.setItem(
+                deliveredReminderStorageKey,
+                JSON.stringify(Array.from(deliveredReminderKeys))
+            );
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const clearScheduledTimers = () => {
         scheduledTimers.forEach((timerId) => window.clearTimeout(timerId));
@@ -147,6 +170,7 @@
             }
 
             deliveredReminderKeys.add(reminderKey);
+            persistDeliveredReminderKeys();
             showReminderPopup(result.notification, reminder.title);
             await refreshList();
         } catch (error) {
@@ -202,7 +226,6 @@
             return;
         }
 
-        deliveredReminderKeys = new Set();
         syncReminders();
     });
 

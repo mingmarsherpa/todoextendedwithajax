@@ -43,14 +43,13 @@ builder.Services.AddRazorPages(options =>
 
 // 5. Email & Resend Integration
 builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("EmailSettings"));
+    builder.Configuration.GetSection("Email"));
 
 builder.Services.AddOptions();
 builder.Services.AddHttpClient<ResendClient>();
 builder.Services.Configure<ResendClientOptions>(o =>
 {
-    // Ensure this matches your Render Environment Variable: EmailSettings__ApiKey
-    o.ApiToken = builder.Configuration["EmailSettings:ApiKey"]!;
+    o.ApiToken = builder.Configuration["Email:ApiKey"] ?? string.Empty;
 });
 
 builder.Services.AddTransient<IResend, ResendClient>();

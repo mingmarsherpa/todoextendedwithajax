@@ -20,7 +20,7 @@ public class ReminderDispatchService
         _logger = logger;
     }
 
-    [AutomaticRetry(Attempts = 0)]
+    [AutomaticRetry(Attempts = 3)]
     public async Task SendReminderAsync(int todoId, string toEmail, string message, CancellationToken ct = default)
     {
         var todo = await _context.TodoItems.FirstOrDefaultAsync(t => t.Id == todoId, ct);
